@@ -9,7 +9,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 3), () {
+    Future.delayed(Duration(seconds: 2), () {
       Navigator.pushReplacementNamed(context, '/signin');
     });
   }
@@ -17,17 +17,10 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Pet Care App',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            CircularProgressIndicator(),
-          ],
+      body: SizedBox.expand(
+        child: Image.asset(
+          'images/Splash.png',
+          fit: BoxFit.cover,
         ),
       ),
     );
