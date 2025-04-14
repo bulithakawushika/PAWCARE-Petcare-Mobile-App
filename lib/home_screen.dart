@@ -1,11 +1,42 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'medicine_page.dart';
 import 'prediction_page.dart';
 import 'goal_page.dart';
 import 'veterinary_page.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  String _petName = 'My Dog'; // Default pet name
+  String _petType = ''; // Default pet type
+  final _database = FirebaseDatabase.instance.ref();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPetData();
+  }
+
+  Future<void> _fetchPetData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final snapshot = await _database.child('users').child(user.uid).get();
+      if (snapshot.exists) {
+        setState(() {
+          _petName = snapshot.child('petName').value as String? ?? 'My Dog';
+          _petType = snapshot.child('petType').value as String? ?? 'Cat';
+        });
+      } else {
+        print('No data available.');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -13,44 +44,73 @@ class HomeScreen extends StatelessWidget {
       body: Column(
         children: [
           // Top image section
-          Container(
-            width: double.infinity,
-            height: MediaQuery.of(context).size.height * 0.25,
-            color: const Color(0xFFffbc0b),
-            child: Image.asset(
-              'images/pet-care-home.png',
-              fit: BoxFit.cover,
+          ClipRRect(
+            borderRadius: const BorderRadius.only(
+              bottomLeft: Radius.circular(130),
+              bottomRight: Radius.circular(130),
+            ),
+            child: Container(
+              width: double.infinity,
+              height: MediaQuery.of(context).size.height * 0.25,
+              color: const Color(0xFFffbc0b),
+              child: Align(
+                alignment: Alignment.center,
+                child: Image.asset(
+                  'images/pet-care-home.png',
+                  width: MediaQuery.of(context).size.width * 0.45,
+                  height: MediaQuery.of(context).size.height * 0.25 * 0.75,
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
           ),
           // Pet card section
-          Card(
-            margin: const EdgeInsets.all(16.0),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  Image.asset(
-                    'images/my_dog.jpeg',
-                    width: 150,
-                    height: 150,
-                    fit: BoxFit.cover,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'My Dog',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                ],
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: 150,
+            child: Card(
+              color: const Color(0xFFffbc0b),
+              margin: const EdgeInsets.all(16.0),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _petName,
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold),
+                        ),
+                        Text(
+                          _petType,
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ],
+                    ),
+                    ClipOval(
+                      child: Image.asset(
+                        'images/my_dog.jpeg',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
           // Four rounded square widgets
           Expanded(
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
+            child: GridView.count(
+              crossAxisCount: 1,
+              childAspectRatio: MediaQuery.of(context).size.width /
+                  (MediaQuery.of(context).size.height * 0.12),
               padding: const EdgeInsets.all(8.0),
-              itemCount: 4,
-              itemBuilder: (BuildContext context, int index) {
+              children: List.generate(4, (index) {
                 String image;
                 String text;
                 VoidCallback onTap;
@@ -104,20 +164,19 @@ class HomeScreen extends StatelessWidget {
                     onTap = () {};
                 }
 
-                return SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.22, // 22% width
-                  child: RoundedSquareWidget(
-                    image: image,
-                    text: text,
-                    onTap: onTap,
-                  ),
+                return RoundedSquareWidget(
+                  image: image,
+                  text: text,
+                  onTap: onTap,
                 );
-              },
+              }),
             ),
           ),
           ElevatedButton(
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
+              // Delay the navigation to ensure Firebase logout completes
+              await Future.delayed(Duration(milliseconds: 500));
               Navigator.pushReplacementNamed(context, '/signin');
             },
             child: const Text('Logout'),
@@ -151,21 +210,23 @@ class RoundedSquareWidget extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Image.asset(
                 image,
                 width: 40,
                 height: 40,
               ),
-              const SizedBox(height: 8),
-              Text(
-                text,
-                style: const TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  text,
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(width: 8),
               CircleAvatar(
                 backgroundColor: const Color(0xFFffbc0b),
                 child: const Icon(
