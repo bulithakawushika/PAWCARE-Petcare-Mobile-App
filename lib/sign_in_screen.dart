@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'home_screen.dart';
 import 'user_type_screen.dart';
+import 'veterinary_home_page.dart';
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -13,19 +15,6 @@ class _SignInScreenState extends State<SignInScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  @override
-  void initState() {
-    super.initState();
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user != null) {
-        // User is already signed in
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomeScreen()),
-        );
-      }
-    });
-  }
 
   Future<void> _signIn() async {
     setState(() {
@@ -42,8 +31,29 @@ class _SignInScreenState extends State<SignInScreen> {
         SnackBar(content: Text('Signed in as ${userCredential.user?.email}')),
       );
 
-      Navigator.pushReplacementNamed(
-          context, '/home'); // Navigate to home screen
+      final ref = FirebaseDatabase.instance.ref();
+      final snapshot = await ref.child('users/${userCredential.user!.uid}').get();
+      if (snapshot.exists) {
+        Map<dynamic, dynamic> userData = snapshot.value as Map;
+        if (userData['type'] == 'veterinary') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => VeterinaryHomePage(
+                name: userData['name'] ?? '',
+                email: userData['email'] ?? '',
+                phone: userData['phone'] ?? '',
+                address: userData['address'] ?? '',
+                birthday: userData['birthday'] ?? '',
+              ),
+            ),
+          );
+        } else {
+          Navigator.pushReplacementNamed(context, '/home'); // Navigate to home screen
+        }
+      } else {
+        Navigator.pushReplacementNamed(context, '/home'); // Navigate to home screen
+      }
     } on FirebaseAuthException catch (e) {
       String message = 'Sign in failed.';
       if (e.code == 'user-not-found') {

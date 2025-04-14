@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'home_screen.dart';
+import 'veterinary_home_page.dart';
 
 class VeterinarySignUpScreen extends StatefulWidget {
   @override
@@ -170,7 +171,14 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => HomeScreen()),
+                                builder: (context) => VeterinaryHomePage(
+                                  name: _nameController.text.trim(),
+                                  email: _emailController.text.trim(),
+                                  phone: _phoneController.text.trim(),
+                                  address: _addressController.text.trim(),
+                                  birthday: _birthdayController.text.trim(),
+                                ),
+                              ),
                             );
 
                             setState(() => _isLoading = false);
@@ -178,7 +186,7 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
                         },
                         child: Text('Register'),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       TextButton(
                         onPressed: () {
                           Navigator.pushNamed(context, '/signin');

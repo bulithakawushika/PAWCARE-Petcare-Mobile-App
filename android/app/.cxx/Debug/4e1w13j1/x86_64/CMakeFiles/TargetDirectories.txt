@@ -1,0 +1,2 @@
+D:/Pet/petap2/android/app/.cxx/Debug/4e1w13j1/x86_64/CMakeFiles/edit_cache.dir
+D:/Pet/petap2/android/app/.cxx/Debug/4e1w13j1/x86_64/CMakeFiles/rebuild_cache.dir
