@@ -63,6 +63,7 @@ class _PetSignUpScreenState extends State<PetSignUpScreen> {
           'type': 'pet',
           'petName': _petNameController.text.trim(),
           'ownerName': _ownerNameController.text.trim(),
+          'ownerEmail': _ownerEmailController.text.trim(),
           'birthday': _birthdayController.text.trim(),
           'petType': _type,
         });

@@ -17,6 +17,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pet App',
       theme: ThemeData(primarySwatch: Colors.blue),
+      routes: {
+        '/signin': (context) => SignInScreen(),
+        '/home': (context) => HomeScreen(),
+      },
       home: StreamBuilder(
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
