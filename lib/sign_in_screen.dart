@@ -15,7 +15,6 @@ class _SignInScreenState extends State<SignInScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
-
   Future<void> _signIn() async {
     setState(() {
       _isLoading = true;
@@ -32,7 +31,8 @@ class _SignInScreenState extends State<SignInScreen> {
       );
 
       final ref = FirebaseDatabase.instance.ref();
-      final snapshot = await ref.child('users/${userCredential.user!.uid}').get();
+      final snapshot =
+          await ref.child('users/${userCredential.user!.uid}').get();
       if (snapshot.exists) {
         Map<dynamic, dynamic> userData = snapshot.value as Map;
         if (userData['type'] == 'veterinary') {
@@ -49,10 +49,12 @@ class _SignInScreenState extends State<SignInScreen> {
             ),
           );
         } else {
-          Navigator.pushReplacementNamed(context, '/home'); // Navigate to home screen
+          Navigator.pushReplacementNamed(
+              context, '/home'); // Navigate to home screen
         }
       } else {
-        Navigator.pushReplacementNamed(context, '/home'); // Navigate to home screen
+        Navigator.pushReplacementNamed(
+            context, '/home'); // Navigate to home screen
       }
     } on FirebaseAuthException catch (e) {
       String message = 'Sign in failed.';

@@ -17,28 +17,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pet App',
       theme: ThemeData(primarySwatch: Colors.blue),
+      home: SplashScreen(),
       routes: {
         '/signin': (context) => SignInScreen(),
         '/home': (context) => HomeScreen(),
       },
-      home: StreamBuilder(
-        stream: FirebaseAuth.instance.authStateChanges(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.active) {
-            final user = snapshot.data;
-            if (user == null) {
-              return SignInScreen();
-            }
-            return HomeScreen();
-          } else {
-            return Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
-        },
-      ),
     );
   }
 }
