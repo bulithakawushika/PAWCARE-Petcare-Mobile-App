@@ -141,7 +141,10 @@ class _SignInScreenState extends State<SignInScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                  Text("Don't have an account?"),
+                  Text(
+                    "Don't have an account?",
+                    style: TextStyle(fontSize: 16),
+                  ),
                   TextButton(
                     onPressed: () {
                       Navigator.push(
@@ -154,6 +157,7 @@ class _SignInScreenState extends State<SignInScreen> {
                       'Sign up',
                       style: TextStyle(
                         color: Colors.blue,
+                        fontSize: 16,
                       ),
                     ),
                   ),

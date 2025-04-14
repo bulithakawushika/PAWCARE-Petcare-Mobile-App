@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -49,154 +50,192 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Veterinary Sign Up'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _isLoading
-            ? Center(child: CircularProgressIndicator())
-            : Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: InputDecoration(labelText: 'Name'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your name';
-                          }
-                          return null;
-                        },
-                      ),
-                      TextFormField(
-                        controller: _emailController,
-                        decoration: InputDecoration(labelText: 'Email'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your email';
-                          }
-                          if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                            return 'Please enter a valid email';
-                          }
-                          return null;
-                        },
-                      ),
-                      TextFormField(
-                        controller: _phoneController,
-                        decoration: InputDecoration(labelText: 'Phone'),
-                        keyboardType: TextInputType.phone,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your phone number';
-                          }
-                          if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
-                            return 'Enter a valid 10-digit phone number';
-                          }
-                          return null;
-                        },
-                      ),
-                      TextFormField(
-                        controller: _addressController,
-                        decoration: InputDecoration(labelText: 'Address'),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your address';
-                          }
-                          return null;
-                        },
-                      ),
-                      TextFormField(
-                        controller: _birthdayController,
-                        decoration: InputDecoration(labelText: 'Birthday'),
-                        readOnly: true,
-                        onTap: () => _selectBirthday(context),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please select your birthday';
-                          }
-                          return null;
-                        },
-                      ),
-                      TextFormField(
-                        controller: _passwordController,
-                        decoration: InputDecoration(labelText: 'Password'),
-                        obscureText: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter your password';
-                          }
-                          if (value.length < 6) {
-                            return 'Password must be at least 6 characters';
-                          }
-                          return null;
-                        },
-                      ),
-                      SizedBox(height: 20),
-                      ElevatedButton(
-                        onPressed: () async {
-                          if (_formKey.currentState!.validate()) {
-                            setState(() => _isLoading = true);
-
-                            UserCredential userCredential =
-                                await _auth.createUserWithEmailAndPassword(
-                              email: _emailController.text.trim(),
-                              password: _passwordController.text.trim(),
-                            );
-
-                            try {
-                              await _database
-                                  .child('users')
-                                  .child(userCredential.user!.uid)
-                                  .set({
-                                'type': 'veterinary',
-                                'name': _nameController.text.trim(),
-                                'email': _emailController.text.trim(),
-                                'phone': _phoneController.text.trim(),
-                                'address': _addressController.text.trim(),
-                                'birthday': _birthdayController.text.trim(),
-                              });
-                              print("After database write");
-                            } catch (dbError) {
-                              print("Database error: $dbError");
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                    content: Text("Database write failed")),
-                              );
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFFfff2d9),
+              Color(0xFFfff2d9),
+              Color(0xFFfcd262),
+            ],
+            stops: [0.0, 0.33, 1.0],
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: _isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        SizedBox(height: 30),
+                        Image.asset(
+                          'images/vetsign.png',
+                          height: 100,
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          'Veterinary Sign Up',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: InputDecoration(labelText: 'Name'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your name';
                             }
-                            print("After database write try-catch");
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _emailController,
+                          decoration: InputDecoration(labelText: 'Email'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your email';
+                            }
+                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                              return 'Please enter a valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _phoneController,
+                          decoration: InputDecoration(labelText: 'Phone'),
+                          keyboardType: TextInputType.phone,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your phone number';
+                            }
+                            if (!RegExp(r'^[0-9]{10}$').hasMatch(value)) {
+                              return 'Enter a valid 10-digit phone number';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _addressController,
+                          decoration: InputDecoration(labelText: 'Address'),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your address';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _birthdayController,
+                          decoration: InputDecoration(labelText: 'Birthday'),
+                          readOnly: true,
+                          onTap: () => _selectBirthday(context),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please select your birthday';
+                            }
+                            return null;
+                          },
+                        ),
+                        TextFormField(
+                          controller: _passwordController,
+                          decoration: InputDecoration(labelText: 'Password'),
+                          obscureText: true,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter your password';
+                            }
+                            if (value.length < 6) {
+                              return 'Password must be at least 6 characters';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () async {
+                            if (_formKey.currentState!.validate()) {
+                              setState(() => _isLoading = true);
 
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VeterinaryHomePage(
-                                  name: _nameController.text.trim(),
-                                  email: _emailController.text.trim(),
-                                  phone: _phoneController.text.trim(),
-                                  address: _addressController.text.trim(),
-                                  birthday: _birthdayController.text.trim(),
+                              UserCredential userCredential =
+                                  await _auth.createUserWithEmailAndPassword(
+                                email: _emailController.text.trim(),
+                                password: _passwordController.text.trim(),
+                              );
+
+                              try {
+                                await _database
+                                    .child('users')
+                                    .child(userCredential.user!.uid)
+                                    .set({
+                                  'type': 'veterinary',
+                                  'name': _nameController.text.trim(),
+                                  'email': _emailController.text.trim(),
+                                  'phone': _phoneController.text.trim(),
+                                  'address': _addressController.text.trim(),
+                                  'birthday': _birthdayController.text.trim(),
+                                });
+                                print("After database write");
+                              } catch (dbError) {
+                                print("Database error: $dbError");
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text("Database write failed")),
+                                );
+                              }
+                              print("After database write try-catch");
+
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => VeterinaryHomePage(
+                                    name: _nameController.text.trim(),
+                                    email: _emailController.text.trim(),
+                                    phone: _phoneController.text.trim(),
+                                    address: _addressController.text.trim(),
+                                    birthday: _birthdayController.text.trim(),
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
 
-                            setState(() => _isLoading = false);
-                          }
-                        },
-                        child: Text('Register'),
-                      ),
-                      const SizedBox(height: 10),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushNamed(context, '/signin');
-                        },
-                        child: Text('Already have an account? Login'),
-                      ),
-                    ],
+                              setState(() => _isLoading = false);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Color(0xFFffbc0b),
+                            textStyle: TextStyle(color: Colors.white),
+                          ),
+                          child: Text(
+                            'Register',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/signin');
+                          },
+                          child: const Text('Already have an account? Login'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+        ),
+      ),
+      bottomNavigationBar: const SizedBox(
+        height: 10,
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            color: Color(0xFFfcd262),
+          ),
+        ),
       ),
     );
   }
