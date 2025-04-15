@@ -174,13 +174,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFffbc0b),
+            ),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               // Delay the navigation to ensure Firebase logout completes
               await Future.delayed(Duration(milliseconds: 500));
               Navigator.pushReplacementNamed(context, '/signin');
             },
-            child: const Text('Logout'),
+            child: const Text(
+              'Logout',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
