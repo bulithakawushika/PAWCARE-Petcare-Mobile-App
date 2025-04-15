@@ -285,6 +285,13 @@ class _GoalPageState extends State<GoalPage> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          _showGoalDialog(context);
+        },
+        backgroundColor: Colors.amber,
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
@@ -301,50 +308,80 @@ class _GoalPageState extends State<GoalPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Define Goal'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: const InputDecoration(
-                  hintText: 'Goal Name',
+          backgroundColor: const Color(0xFFfff2d9),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Add a goal",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                onChanged: (value) {
-                  goalTitle = value;
-                },
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () async {
-                  TimeOfDay? selectedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.now(),
-                  );
-                  if (selectedTime != null) {
-                    goalTime = selectedTime;
-                  }
-                },
-                child: const Text('Set Goal Time'),
-              ),
-            ],
+                const SizedBox(height: 20),
+                TextFormField(
+                  style: const TextStyle(color: Colors.black),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    labelText: 'Goal Name',
+                    labelStyle: const TextStyle(color: Colors.grey),
+                    border: const OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(30.0)),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    goalTitle = value;
+                  },
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () async {
+                    TimeOfDay? selectedTime = await showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay.now(),
+                    );
+                    if (selectedTime != null) {
+                      goalTime = selectedTime;
+                    }
+                  },
+                  child: const Text(
+                    'Set Goal Time',
+                    style: TextStyle(color: Colors.black),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                  ),
+                  onPressed: () {
+                    if (goalTitle.isNotEmpty && goalTime != null) {
+                      _saveGoalToFirebase(goalTitle, goalTime!);
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Add',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                      Icon(Icons.arrow_right, color: Colors.black),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          actions: [
-            TextButton(
-              child: const Text('Cancel'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: const Text('Save'),
-              onPressed: () {
-                if (goalTitle.isNotEmpty && goalTime != null) {
-                  _saveGoalToFirebase(goalTitle, goalTime!);
-                  Navigator.of(context).pop();
-                }
-              },
-            ),
-          ],
         );
       },
     );

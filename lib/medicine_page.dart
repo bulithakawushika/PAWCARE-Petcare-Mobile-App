@@ -230,7 +230,7 @@ class _MedicinePageState extends State<MedicinePage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orangeAccent,
+              backgroundColor: const Color(0xFFffbc0b),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -250,6 +250,7 @@ class _MedicinePageState extends State<MedicinePage> {
               ),
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
       floatingActionButton: FloatingActionButton(
