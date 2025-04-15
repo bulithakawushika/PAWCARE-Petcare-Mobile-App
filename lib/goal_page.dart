@@ -72,13 +72,20 @@ class _GoalPageState extends State<GoalPage> {
       'Provide fresh water',
     ];
 
+    // Use a loop to create default goals in the specified order
     for (String title in defaultGoalTitles) {
-      DatabaseReference newGoalRef = databaseReference.push();
-      await newGoalRef.set({
-        'title': title,
-        'isComplete': null,
-        'lastUpdated': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-      });
+      // Check if the goal already exists before creating it
+      DatabaseEvent event = await databaseReference.orderByChild('title').equalTo(title).once();
+      DataSnapshot dataSnapshot = event.snapshot;
+
+      if (dataSnapshot.value == null) {
+        DatabaseReference newGoalRef = databaseReference.push();
+        await newGoalRef.set({
+          'title': title,
+          'isComplete': null,
+          'lastUpdated': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        });
+      }
     }
     _fetchGoals(); // Fetch the newly created goals
   }
@@ -171,15 +178,50 @@ class _GoalPageState extends State<GoalPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              goal.title,
-                              style: const TextStyle(
-                                color: Colors.grey,
-                              ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  goal.title,
+                                  style: const TextStyle(
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                if (goal.title == 'Provide morning meal' ||
+                                    goal.title == 'Provide lunch meal' ||
+                                    goal.title == 'Provide dinner meal' ||
+                                    goal.title == 'Provide fresh water')
+                                  const Text(
+                                    'Default',
+                                    style: TextStyle(
+                                      color: Colors.black54,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  )
+                                else
+                                  InkWell(
+                                    onTap: () {
+                                      _deleteGoal(goal);
+                                    },
+                                    child: const Text(
+                                      'Delete',
+                                      style: TextStyle(
+                                        color: Colors.black54,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  if (goal.isComplete != null)
+                                    Text(
+                                      "Status: $statusText",
+                                      style: TextStyle(color: statusColor, fontSize: 16),
+                                    ),
+                              ],
                             ),
                             Row(
                               children: [
@@ -207,11 +249,6 @@ class _GoalPageState extends State<GoalPage> {
                             ),
                           ],
                         ),
-                        if (goal.isComplete != null)
-                          Text(
-                            "Status: $statusText",
-                            style: TextStyle(color: statusColor, fontSize: 16),
-                          ),
                       ],
                     ),
                   );
@@ -236,6 +273,11 @@ class _GoalPageState extends State<GoalPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _deleteGoal(Goal goal) async {
+    await databaseReference.child(goal.goalId!).remove();
+    _fetchGoals(); // Refresh the list after deleting
   }
 
   void _showGoalDialog(BuildContext context) {
