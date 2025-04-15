@@ -25,7 +25,8 @@ class _GoalPageState extends State<GoalPage> {
 
     if (dataSnapshot.value != null) {
       Map<dynamic, dynamic> data = dataSnapshot.value as Map;
-      List<Goal> fetchedGoals = [];
+      List<Goal> defaultGoals = [];
+      List<Goal> newGoals = [];
       data.forEach((key, value) {
         final lastUpdated = value['lastUpdated'] ?? "";
         final currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -35,15 +36,27 @@ class _GoalPageState extends State<GoalPage> {
           isComplete = null; // Reset if the date doesn't match
         }
 
-        fetchedGoals.add(Goal(
-          goalId: key,
-          title: value['title'],
-          isComplete: isComplete,
-          lastUpdated: lastUpdated,
-        ));
+        if (value['title'] == 'Provide morning meal' ||
+            value['title'] == 'Provide lunch meal' ||
+            value['title'] == 'Provide dinner meal' ||
+            value['title'] == 'Provide fresh water') {
+          defaultGoals.add(Goal(
+            goalId: key,
+            title: value['title'],
+            isComplete: isComplete,
+            lastUpdated: lastUpdated,
+          ));
+        } else {
+          newGoals.add(Goal(
+            goalId: key,
+            title: value['title'],
+            isComplete: isComplete,
+            lastUpdated: lastUpdated,
+          ));
+        }
       });
       setState(() {
-        goals = fetchedGoals;
+        goals = defaultGoals + newGoals;
       });
     } else {
       // If no data exists, create default goals in Firebase
@@ -164,7 +177,7 @@ class _GoalPageState extends State<GoalPage> {
                           children: [
                             Text(
                               goal.title,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.grey,
                               ),
                             ),
@@ -208,7 +221,89 @@ class _GoalPageState extends State<GoalPage> {
           ],
         ),
       ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: const Color(0xFFffbc0b),
+        onPressed: () {
+          _showGoalDialog(context);
+        },
+        child: const Text(
+          '+',
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 40,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
+  }
+
+  void _showGoalDialog(BuildContext context) {
+    String goalTitle = '';
+    TimeOfDay? goalTime;
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Define Goal'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                decoration: const InputDecoration(
+                  hintText: 'Goal Name',
+                ),
+                onChanged: (value) {
+                  goalTitle = value;
+                },
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () async {
+                  TimeOfDay? selectedTime = await showTimePicker(
+                    context: context,
+                    initialTime: TimeOfDay.now(),
+                  );
+                  if (selectedTime != null) {
+                    goalTime = selectedTime;
+                  }
+                },
+                child: const Text('Set Goal Time'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text('Save'),
+              onPressed: () {
+                if (goalTitle.isNotEmpty && goalTime != null) {
+                  _saveGoalToFirebase(goalTitle, goalTime!);
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _saveGoalToFirebase(String title, TimeOfDay time) async {
+    DatabaseReference newGoalRef = databaseReference.push();
+    await newGoalRef.set({
+      'title': title,
+      'time': '${time.hour}:${time.minute}',
+      'isComplete': null,
+      'lastUpdated': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+    });
+    _fetchGoals(); // Refresh the list after saving
   }
 }
 
