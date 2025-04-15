@@ -51,14 +51,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             child: Container(
               width: double.infinity,
-              height: MediaQuery.of(context).size.height * 0.25,
+              height: MediaQuery.of(context).size.height * 0.20,
               color: const Color(0xFFffbc0b),
               child: Align(
                 alignment: Alignment.center,
                 child: Image.asset(
                   'images/pet-care-home.png',
                   width: MediaQuery.of(context).size.width * 0.45,
-                  height: MediaQuery.of(context).size.height * 0.25 * 0.75,
+                  height: MediaQuery.of(context).size.height * 0.20 * 0.75,
                   fit: BoxFit.contain,
                 ),
               ),
@@ -172,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
               }),
             ),
           ),
+          const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
