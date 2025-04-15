@@ -124,6 +124,33 @@ class _GoalPageState extends State<GoalPage> {
             fontSize: 24,
           ),
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 20.0),
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextButton(
+                  style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFFffbc0b)),
+                  ),
+                  onPressed: () {
+                    _showGoalDialog(context);
+                  },
+                  child: const Text(
+                    'Set Goal',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
       body: Container(
         color: const Color(0xFFffeecc),
@@ -256,20 +283,6 @@ class _GoalPageState extends State<GoalPage> {
               ),
             ),
           ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFffbc0b),
-        onPressed: () {
-          _showGoalDialog(context);
-        },
-        child: const Text(
-          '+',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 40,
-            fontWeight: FontWeight.bold,
-          ),
         ),
       ),
     );
