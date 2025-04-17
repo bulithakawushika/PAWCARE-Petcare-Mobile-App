@@ -283,6 +283,7 @@ class _MedicinePageState extends State<MedicinePage> {
                             setState(() {
                               vaccinatedOn = picked;
                             });
+                            setState(() {}); // Explicitly call setState again
                           }
                         },
                         child: IgnorePointer(
@@ -316,6 +317,7 @@ class _MedicinePageState extends State<MedicinePage> {
                             setState(() {
                               nextDose = picked;
                             });
+                            setState(() {}); // Explicitly call setState again
                           }
                         },
                         child: IgnorePointer(
