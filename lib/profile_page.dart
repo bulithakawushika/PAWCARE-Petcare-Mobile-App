@@ -122,6 +122,15 @@ class _ProfilePageState extends State<ProfilePage> {
           padding: const EdgeInsets.only(bottom: 40),
           child: Column(
             children: [
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.only(top: 16.0),
+                  child: Text(
+                    'Profile',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
               Center(
                 child: GestureDetector(
                   onTap: () {},
@@ -145,55 +154,79 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               const Center(child: Icon(Icons.photo_camera, size: 30)),
-              const SizedBox(height: 20),
               const Text('Pet details',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              _buildInputField('Description:', _description, (val) {
-                _description = val;
-              }),
-              _buildInputField('Name:', _petName, (val) {
+              const SizedBox(height: 5), //change
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                child: Center(
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: TextField(
+                      controller: TextEditingController(text: _description),
+                      decoration: const InputDecoration(
+                        hintText: 'Description',
+                        border: InputBorder.none,
+                        contentPadding:
+                            EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _description = value;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+              _buildInputField('Name', _petName, (val) {
                 _petName = val;
-              }),
-              _buildInputField('Breed:', _breed, (val) {
+              }, 'Pet Name'),
+              _buildInputField('Breed', _breed, (val) {
                 _breed = val;
-              }),
-              _buildInputField('Type:', _type, (val) {
+              }, 'Breed'),
+              _buildInputField('Type', _type, (val) {
                 _type = val;
-              }),
-              _buildInputField('Gender:', _gender, (val) {
+              }, 'Type'),
+              _buildInputField('Gender', _gender, (val) {
                 _gender = val;
-              }),
-              _buildInputField('Size:', _size, (val) {
+              }, 'Gender'),
+              _buildInputField('Size', _size, (val) {
                 _size = val;
-              }),
-              _buildInputField('Weight:', _weight, (val) {
+              }, 'Size'),
+              _buildInputField('Weight', _weight, (val) {
                 _weight = val;
-              }),
-              const SizedBox(height: 20),
+              }, 'Weight'),
+              const SizedBox(height: 10),
               const Text('Owner details',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 10),
-              _buildInputField('Name:', _ownerName, (val) {
+              _buildInputField('Name', _ownerName, (val) {
                 _ownerName = val;
-              }),
-              _buildInputField('Address:', _address, (val) {
+              }, 'Owner Name'),
+              _buildInputField('Address', _address, (val) {
                 _address = val;
-              }),
-              _buildInputField('Password:', _password, (val) {
+              }, 'Address'),
+              _buildInputField('Password', _password, (val) {
                 _password = val;
-              }),
-              const SizedBox(height: 30),
+              }, 'Password'),
+              const SizedBox(height: 15),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
+                  width: 100,
+                  child: ElevatedButton(
                     onPressed: _saveData,
-                    icon: const Icon(Icons.save),
-                    label: const Text("Save"),
+                    child: const Text(
+                      "Save",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 15),
+                      backgroundColor: const Color(0xFFFFBC0B),
+                      padding: const EdgeInsets.symmetric(vertical: 5), //change
                       textStyle: const TextStyle(fontSize: 16),
                     ),
                   ),
@@ -207,17 +240,18 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildInputField(
-      String label, String initialValue, Function(String) onChanged) {
+      String label, String initialValue, Function(String) onChanged, String? placeholder) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       child: Row(
         children: [
           SizedBox(width: 100, child: Text(label)),
-          const SizedBox(width: 10),
+          const SizedBox(width: 0),
           Expanded(
             child: TextField(
               controller: TextEditingController(text: initialValue),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
+                hintText: placeholder,
                 border: InputBorder.none,
                 contentPadding:
                     EdgeInsets.symmetric(horizontal: 10, vertical: 0),
