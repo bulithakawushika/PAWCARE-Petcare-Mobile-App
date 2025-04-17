@@ -7,6 +7,43 @@ class ProfilePage extends StatefulWidget {
   _ProfilePageState createState() => _ProfilePageState();
 }
 
+class _PasswordTextField extends StatefulWidget {
+  final ValueChanged<String> onChanged;
+
+  const _PasswordTextField({Key? key, required this.onChanged})
+      : super(key: key);
+
+  @override
+  _PasswordTextFieldState createState() => _PasswordTextFieldState();
+}
+
+class _PasswordTextFieldState extends State<_PasswordTextField> {
+  bool _obscureText = true;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      obscureText: _obscureText,
+      decoration: InputDecoration(
+        hintText: 'Password',
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+        suffixIcon: IconButton(
+          icon: Icon(
+            _obscureText ? Icons.visibility : Icons.visibility_off,
+          ),
+          onPressed: () {
+            setState(() {
+              _obscureText = !_obscureText;
+            });
+          },
+        ),
+      ),
+      onChanged: widget.onChanged,
+    );
+  }
+}
+
 class _ProfilePageState extends State<ProfilePage> {
   final _auth = FirebaseAuth.instance;
   final _database = FirebaseDatabase.instance.ref();
@@ -54,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       profilePictureRef.once().then((DatabaseEvent event) {
         if (event.snapshot.value == null) {
-          profilePictureRef.set('images/my_dog.jpeg');
+          profilePictureRef.set('images/dog.jpeg');
         }
       });
 
@@ -114,6 +151,21 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _updatePassword() async {
+    String? userId = _auth.currentUser?.uid;
+    if (userId != null && _password.isNotEmpty) {
+      try {
+        User? user = _auth.currentUser;
+        await user?.updatePassword(_password);
+        print('Password updated successfully!');
+        // Optionally, show a success message to the user
+      } catch (error) {
+        print('Error updating password: $error');
+        // Optionally, show an error message to the user
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -140,9 +192,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       builder: (context, snapshot) {
                         ImageProvider image;
                         if (snapshot.hasData && snapshot.data != null) {
-                          image = NetworkImage(snapshot.data!);
+                          image = const AssetImage('images/dog.jpeg');
                         } else {
-                          image = const AssetImage('images/my_dog.jpeg');
+                          image = const AssetImage('images/dog.jpeg');
                         }
                         return CircleAvatar(
                           radius: 75,
@@ -164,8 +216,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     width: double.infinity,
                     child: TextField(
                       controller: TextEditingController(text: _description),
+                      style: const TextStyle(fontStyle: FontStyle.italic),
                       decoration: const InputDecoration(
-                        hintText: 'Description',
+                        hintText: 'Describe the furball of joy!',
+                        hintStyle: const TextStyle(fontStyle: FontStyle.italic),
                         border: InputBorder.none,
                         contentPadding:
                             EdgeInsets.symmetric(horizontal: 10, vertical: 0),
@@ -207,16 +261,34 @@ class _ProfilePageState extends State<ProfilePage> {
               _buildInputField('Address', _address, (val) {
                 _address = val;
               }, 'Address'),
-              _buildInputField('Password', _password, (val) {
-                _password = val;
-              }, 'Password'),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                child: Row(
+                  children: [
+                    SizedBox(width: 100, child: Text('Change Password')),
+                    const SizedBox(width: 0),
+                    Expanded(
+                      child: _PasswordTextField(
+                        onChanged: (value) {
+                          setState(() {
+                            _password = value;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 15),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: SizedBox(
                   width: 100,
                   child: ElevatedButton(
-                    onPressed: _saveData,
+                    onPressed: () {
+                      _saveData();
+                      _updatePassword();
+                    },
                     child: const Text(
                       "Save",
                       style: TextStyle(
@@ -239,8 +311,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildInputField(
-      String label, String initialValue, Function(String) onChanged, String? placeholder) {
+  Widget _buildInputField(String label, String initialValue,
+      Function(String) onChanged, String? placeholder) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
       child: Row(
