@@ -57,6 +57,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final _database = FirebaseDatabase.instance.ref();
   String? _profilePictureUrl;
   File? _imageFile;
+  String _defaultImagePath = 'images/my_dog.jpeg';
 
   String _description = '';
   String _petName = '';
@@ -209,7 +210,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required String hintText,
     bool isPassword = false,
     TextInputType? keyboardType,
-  String initialValue = '',
+    String initialValue = '',
   }) {
     String initial = initialValue;
     if (label == 'Name' && hintText == 'Pet Name' && initialValue.isEmpty) {
@@ -274,21 +275,30 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: GestureDetector(
                         onTap: _pickImage,
                         child: ClipOval(
-                          child: FutureBuilder<String?>(
-                            future: Future.value(_profilePictureUrl),
-                            builder: (context, snapshot) {
-                              ImageProvider<Object>? image;
-                              if (snapshot.hasData && snapshot.data != null) {
-                                image = MemoryImage(base64Decode(snapshot.data!));
-                              } else {
-                                image = null;
-                              }
-                              return CircleAvatar(
-                                radius: 75,
-                                backgroundImage: image,
-                              );
-                            },
-                          ),
+                          child: _imageFile != null
+                              ? Image.file(
+                                  _imageFile!,
+                                  width: 150,
+                                  height: 150,
+                                  fit: BoxFit.cover,
+                                )
+                              : FutureBuilder<String?>(
+                                  future: Future.value(_profilePictureUrl),
+                                  builder: (context, snapshot) {
+                                    ImageProvider<Object>? image;
+                                    if (snapshot.hasData &&
+                                        snapshot.data != null) {
+                                      image = MemoryImage(
+                                          base64Decode(snapshot.data!));
+                                    } else {
+                                      image = AssetImage(_defaultImagePath);
+                                    }
+                                    return CircleAvatar(
+                                      radius: 75,
+                                      backgroundImage: image,
+                                    );
+                                  },
+                                ),
                         ),
                       ),
                     ),

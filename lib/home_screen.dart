@@ -1,7 +1,10 @@
 import 'dart:convert'; // For base64Decode
+import 'dart:io';
+import 'dart:convert'; // For base64Decode
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:image_picker/image_picker.dart';
 import 'profile_page.dart';
 import 'medicine_page.dart';
 import 'prediction_page.dart';
@@ -17,13 +20,30 @@ class _HomeScreenState extends State<HomeScreen> {
   String _petName = 'My Dog'; // Default pet name
   String _petType = 'Cat'; // Default pet type
   String? _petImageBase64; // Uploaded image (nullable)
+  String _defaultImagePath = 'images/dog.jpeg';
 
   final _database = FirebaseDatabase.instance.ref();
+  String? _profilePictureUrl;
 
   @override
   void initState() {
     super.initState();
     _fetchPetData();
+    loadProfilePicture();
+  }
+
+  Future<void> loadProfilePicture() async {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      DatabaseReference profilePictureRef =
+          _database.child('users').child(userId).child('profile_picture');
+
+      profilePictureRef.onValue.listen((event) {
+        setState(() {
+          _profilePictureUrl = event.snapshot.value as String?;
+        });
+      });
+    }
   }
 
   Future<void> _fetchPetData() async {
@@ -34,7 +54,6 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _petName = snapshot.child('petName').value as String? ?? 'My Dog';
           _petType = snapshot.child('petType').value as String? ?? 'Cat';
-          _petImageBase64 = snapshot.child('petImage').value as String?;
         });
       } else {
         print('No data available.');
@@ -58,18 +77,18 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               height: MediaQuery.of(context).size.height * 0.20,
               color: const Color(0xFFffbc0b),
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 10.0),
-                child: Image.asset(
-                  'images/pet-care-home.png',
-                  width: MediaQuery.of(context).size.width * 0.45,
-                  height: MediaQuery.of(context).size.height * 0.20 * 0.75,
-                  fit: BoxFit.contain,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  child: Image.asset(
+                    'images/pet-care-home.png',
+                    width: MediaQuery.of(context).size.width * 0.45,
+                    height: MediaQuery.of(context).size.height * 0.20 * 0.75,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
-            ),
             ),
           ),
           // Pet card section
@@ -80,7 +99,9 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfilePage(petName: _petName, petType: _petType)),
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          ProfilePage(petName: _petName, petType: _petType)),
                 );
               },
               child: Card(
@@ -111,18 +132,27 @@ class _HomeScreenState extends State<HomeScreen> {
                         ],
                       ),
                       ClipOval(
-                        child: _petImageBase64 != null
-                            ? Image.memory(
-                                base64Decode(_petImageBase64!),
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
+                        child: _profilePictureUrl != null
+                            ? FutureBuilder<String?>(
+                                future: Future.value(_profilePictureUrl),
+                                builder: (context, snapshot) {
+                                  ImageProvider<Object>? image;
+                                  if (snapshot.hasData &&
+                                      snapshot.data != null) {
+                                    image = MemoryImage(
+                                        base64Decode(snapshot.data!));
+                                  } else {
+                                    image = AssetImage('images/dog.jpeg');
+                                  }
+                                  return CircleAvatar(
+                                    radius: 50,
+                                    backgroundImage: image,
+                                  );
+                                },
                               )
-                            : Image.asset(
-                                'images/dog.jpeg', // <-- Your default dog image
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
+                            : const CircleAvatar(
+                                radius: 50,
+                                backgroundImage: AssetImage('images/dog.jpeg'),
                               ),
                       ),
                     ],
