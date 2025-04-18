@@ -244,32 +244,41 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-                Center(
-                  child: GestureDetector(
-                    onTap: _pickImage,
-                    child: ClipOval(
-                      child: FutureBuilder<String?>(
-                        future: Future.value(_profilePictureUrl),
-                        builder: (context, snapshot) {
-                          ImageProvider<Object>? image;
-                          if (snapshot.hasData && snapshot.data != null) {
-                            image = MemoryImage(base64Decode(snapshot.data!));
-                          } else {
-                            image = null;
-                          }
-                          return CircleAvatar(
-                            radius: 75,
-                            backgroundImage: image,
-                          );
-                        },
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Center(
+                      child: GestureDetector(
+                        onTap: _pickImage,
+                        child: ClipOval(
+                          child: FutureBuilder<String?>(
+                            future: Future.value(_profilePictureUrl),
+                            builder: (context, snapshot) {
+                              ImageProvider<Object>? image;
+                              if (snapshot.hasData && snapshot.data != null) {
+                                image = MemoryImage(base64Decode(snapshot.data!));
+                              } else {
+                                image = null;
+                              }
+                              return CircleAvatar(
+                                radius: 75,
+                                backgroundImage: image,
+                              );
+                            },
+                          ),
+                        ),
                       ),
                     ),
+                    Icon(Icons.camera_alt, size: 30, color: Colors.grey),
+                  ],
+                ),
+                const Padding(
+                  padding: EdgeInsets.only(top: 16.0),
+                  child: Text(
+                    'Pet details',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
-                const Center(child: Icon(Icons.photo_camera, size: 30)),
-                const Text('Pet details',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 5),
                 Padding(
                   padding:

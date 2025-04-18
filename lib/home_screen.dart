@@ -58,8 +58,10 @@ class _HomeScreenState extends State<HomeScreen> {
               width: double.infinity,
               height: MediaQuery.of(context).size.height * 0.20,
               color: const Color(0xFFffbc0b),
-              child: Align(
-                alignment: Alignment.center,
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 10.0),
                 child: Image.asset(
                   'images/pet-care-home.png',
                   width: MediaQuery.of(context).size.width * 0.45,
@@ -67,6 +69,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   fit: BoxFit.contain,
                 ),
               ),
+            ),
             ),
           ),
           // Pet card section
