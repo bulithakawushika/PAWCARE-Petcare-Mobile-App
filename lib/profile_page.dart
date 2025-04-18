@@ -397,6 +397,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     _ownerName = val;
                   },
                   hintText: 'Owner Name',
+                  initialValue: _ownerName,
                 ),
                 _buildInputField(
                   label: 'Address',
