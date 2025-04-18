@@ -1,16 +1,10 @@
 # petapp2
 
-A new Flutter project.
+### Paw Care is an Android application built with Flutter that helps pet owners manage their pet's health and well-being. The app allows users to, 
 
-## Getting Started
+*   Track and set medicine reminders
+*   Predict potential health issues based on symptoms using a machine learning model
+*   Set goals for their pet's health
+*   Find local veterinary services
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+The app uses Firebase for user authentication and data storage. It also utilizes a TensorFlow Lite model for predicting pet health issues.
