@@ -80,7 +80,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                  MaterialPageRoute(builder: (context) => ProfilePage(petName: _petName, petType: _petType)),
                 );
               },
               child: Card(

@@ -6,6 +6,11 @@ import 'dart:convert'; // For encoding images to base64
 import 'dart:io'; // For handling file images
 
 class ProfilePage extends StatefulWidget {
+  final String? petName;
+  final String? petType;
+
+  ProfilePage({Key? key, this.petName, this.petType}) : super(key: key);
+
   @override
   _ProfilePageState createState() => _ProfilePageState();
 }
@@ -121,15 +126,20 @@ class _ProfilePageState extends State<ProfilePage> {
           Map<dynamic, dynamic> data = snapshot.value as Map<dynamic, dynamic>;
           setState(() {
             _description = data['description'] ?? '';
-            _petName = data['petName'] ?? '';
+            _petName = data['petName'] ?? widget.petName ?? '';
             _breed = data['breed'] ?? '';
-            _type = data['type'] ?? '';
+            _type = data['type'] ?? widget.petType ?? '';
             _gender = data['gender'] ?? '';
             _size = data['size'] ?? '';
             _weight = data['weight'] ?? '';
             _ownerName = data['ownerName'] ?? '';
             _address = data['address'] ?? '';
             _password = data['password'] ?? '';
+          });
+        } else {
+          setState(() {
+            _petName = widget.petName ?? '';
+            _type = widget.petType ?? '';
           });
         }
       });
@@ -193,12 +203,25 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Widget _buildInputField(String label, String initialValue,
-      Function(String) onChanged, String hintText,
-      {bool isPassword = false}) {
+  Widget _buildInputField({
+    required String label,
+    required Function(String) onChanged,
+    required String hintText,
+    bool isPassword = false,
+    TextInputType? keyboardType,
+  String initialValue = '',
+  }) {
+    String initial = initialValue;
+    if (label == 'Name' && hintText == 'Pet Name' && initialValue.isEmpty) {
+      initial = widget.petName ?? '';
+    } else if (label == 'Type' && initialValue.isEmpty) {
+      initial = widget.petType ?? '';
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       child: TextField(
+        keyboardType: keyboardType,
+        controller: TextEditingController(text: initial),
         obscureText: isPassword ? !_isPasswordVisible : false,
         onChanged: onChanged,
         decoration: InputDecoration(
@@ -305,38 +328,83 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-                _buildInputField('Name', _petName, (val) {
-                  _petName = val;
-                }, 'Pet Name'),
-                _buildInputField('Breed', _breed, (val) {
-                  _breed = val;
-                }, 'Breed'),
-                _buildInputField('Type', _type, (val) {
-                  _type = val;
-                }, 'Type'),
-                _buildInputField('Gender', _gender, (val) {
-                  _gender = val;
-                }, 'Gender'),
-                _buildInputField('Size', _size, (val) {
-                  _size = val;
-                }, 'Size'),
-                _buildInputField('Weight', _weight, (val) {
-                  _weight = val;
-                }, 'Weight'),
+                _buildInputField(
+                  label: 'Name',
+                  onChanged: (val) {
+                    _petName = val;
+                  },
+                  hintText: 'Pet Name',
+                  initialValue: _petName,
+                ),
+                _buildInputField(
+                  label: 'Breed',
+                  onChanged: (val) {
+                    _breed = val;
+                  },
+                  hintText: 'Breed',
+                  initialValue: _breed,
+                ),
+                _buildInputField(
+                  label: 'Type',
+                  onChanged: (val) {
+                    _type = val;
+                  },
+                  hintText: 'Type',
+                  initialValue: _type,
+                ),
+                _buildInputField(
+                  label: 'Gender',
+                  onChanged: (val) {
+                    _gender = val;
+                  },
+                  hintText: 'Gender',
+                  initialValue: _gender,
+                ),
+                _buildInputField(
+                  label: 'Size',
+                  onChanged: (val) {
+                    _size = val;
+                  },
+                  hintText: 'Size',
+                  initialValue: _size,
+                ),
+                _buildInputField(
+                  label: 'Weight',
+                  onChanged: (val) {
+                    _weight = val;
+                  },
+                  hintText: 'Weight',
+                  initialValue: _weight,
+                ),
                 const SizedBox(height: 10),
                 const Text('Owner details',
                     style:
                         TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 10),
-                _buildInputField('Name', _ownerName, (val) {
-                  _ownerName = val;
-                }, 'Owner Name'),
-                _buildInputField('Address', _address, (val) {
-                  _address = val;
-                }, 'Address'),
-                _buildInputField('Password', _password, (val) {
-                  _password = val;
-                }, 'Password', isPassword: true),
+                _buildInputField(
+                  label: 'Name',
+                  onChanged: (val) {
+                    _ownerName = val;
+                  },
+                  hintText: 'Owner Name',
+                ),
+                _buildInputField(
+                  label: 'Address',
+                  onChanged: (val) {
+                    _address = val;
+                  },
+                  hintText: 'Address',
+                  initialValue: _address,
+                ),
+                _buildInputField(
+                  label: 'Password',
+                  onChanged: (val) {
+                    _password = val;
+                  },
+                  hintText: 'Password',
+                  isPassword: true,
+                  initialValue: _password,
+                ),
                 const SizedBox(height: 15),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
