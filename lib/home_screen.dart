@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'profile_page.dart';
 import 'medicine_page.dart';
 import 'prediction_page.dart';
 import 'goal_page.dart';
@@ -65,44 +66,52 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           // Pet card section
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
-            height: 150,
-            child: Card(
-              color: const Color(0xFFffbc0b),
-              margin: const EdgeInsets.all(16.0),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.8,
+              height: 150,
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ProfilePage()),
+                  );
+                },
+                child: Card(
+                  color: const Color(0xFFffbc0b),
+                  margin: const EdgeInsets.all(16.0),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          _petName,
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _petName,
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            Text(
+                              _petType,
+                              style: TextStyle(fontSize: 12),
+                            ),
+                          ],
                         ),
-                        Text(
-                          _petType,
-                          style: TextStyle(fontSize: 12),
+                        ClipOval(
+                          child: Image.asset(
+                            'images/my_dog.jpeg',
+                            width: 100,
+                            height: 100,
+                            fit: BoxFit.cover,
+                          ),
                         ),
                       ],
                     ),
-                    ClipOval(
-                      child: Image.asset(
-                        'images/my_dog.jpeg',
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
           // Four rounded square widgets
           Expanded(
             child: GridView.count(
