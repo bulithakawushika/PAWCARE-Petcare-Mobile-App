@@ -228,6 +228,27 @@ class _MedicinePageState extends State<MedicinePage> {
               },
             ),
           ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFffbc0b),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MedicineHistoryPage()),
+              );
+            },
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              child: Text(
+                'History',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
         ],
       ),
