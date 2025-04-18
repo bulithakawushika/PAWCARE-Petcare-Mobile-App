@@ -1,4 +1,4 @@
-import 'dart:convert'; // <-- Important for base64Decode
+import 'dart:convert'; // For base64Decode
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -15,7 +15,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _petName = 'My Dog'; // Default pet name
-  String _petType = ''; // Default pet type
+  String _petType = 'Cat'; // Default pet type
   String? _petImageBase64; // Uploaded image (nullable)
 
   final _database = FirebaseDatabase.instance.ref();
@@ -83,6 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Card(
                 color: const Color(0xFFffbc0b),
                 margin: const EdgeInsets.all(16.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Row(
@@ -90,15 +93,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
                             _petName,
                             style: const TextStyle(
                                 fontSize: 20, fontWeight: FontWeight.bold),
                           ),
+                          const SizedBox(height: 5),
                           Text(
                             _petType,
-                            style: const TextStyle(fontSize: 12),
+                            style: const TextStyle(fontSize: 14),
                           ),
                         ],
                       ),
@@ -111,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fit: BoxFit.cover,
                               )
                             : Image.asset(
-                                'images/my_dog.jpeg',
+                                'images/dog.jpeg', // <-- Your default dog image
                                 width: 100,
                                 height: 100,
                                 fit: BoxFit.cover,

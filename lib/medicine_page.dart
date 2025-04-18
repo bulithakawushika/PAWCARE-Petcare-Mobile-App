@@ -94,7 +94,7 @@ class _MedicinePageState extends State<MedicinePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFfff2d9),
       appBar: AppBar(
-        title: const Text('Set Medicine'),
+        title: const Text('Medicine'),
       ),
       body: Column(
         children: [
@@ -245,8 +245,7 @@ class _MedicinePageState extends State<MedicinePage> {
               padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
               child: Text(
                 'History',
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -427,7 +426,14 @@ class _MedicinePageState extends State<MedicinePage> {
           );
         },
         backgroundColor: Colors.amber,
-        child: const Icon(Icons.add),
+        child: const Text(
+          '+',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
       ),
     );
   }

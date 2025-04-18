@@ -152,9 +152,16 @@ class _PredictionPageState extends State<PredictionPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: addSymptomField,
-        child: const Icon(Icons.add),
-        backgroundColor: Colors.orange,
+        backgroundColor: const Color(0xFFffbc0b),
         tooltip: 'Add Symptom',
+        child: const Text(
+          '+',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -204,7 +211,16 @@ class _PredictionPageState extends State<PredictionPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: modelLoaded ? predict : null,
-              child: const Text('Predict'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFffbc0b),
+              ),
+              child: const Text(
+                'Predict',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
             const SizedBox(height: 20),
           ],
