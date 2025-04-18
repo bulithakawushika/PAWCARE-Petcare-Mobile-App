@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert'; // For encoding images to base64
+import 'dart:io'; // For handling file images
 
 class ProfilePage extends StatefulWidget {
   @override
@@ -48,6 +51,7 @@ class _ProfilePageState extends State<ProfilePage> {
   final _auth = FirebaseAuth.instance;
   final _database = FirebaseDatabase.instance.ref();
   String? _profilePictureUrl;
+  File? _imageFile;
 
   String _description = '';
   String _petName = '';
@@ -59,6 +63,9 @@ class _ProfilePageState extends State<ProfilePage> {
   String _ownerName = '';
   String _address = '';
   String _password = '';
+
+  final _picker = ImagePicker();
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -91,7 +98,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       profilePictureRef.once().then((DatabaseEvent event) {
         if (event.snapshot.value == null) {
-          profilePictureRef.set('images/dog.jpeg');
+          profilePictureRef.set(null);
         }
       });
 
@@ -158,184 +165,198 @@ class _ProfilePageState extends State<ProfilePage> {
         User? user = _auth.currentUser;
         await user?.updatePassword(_password);
         print('Password updated successfully!');
-        // Optionally, show a success message to the user
       } catch (error) {
         print('Error updating password: $error');
-        // Optionally, show an error message to the user
       }
     }
+  }
+
+  Future<void> _pickImage() async {
+    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _imageFile = File(pickedFile.path);
+      });
+      _uploadProfilePicture();
+    }
+  }
+
+  Future<void> _uploadProfilePicture() async {
+    if (_imageFile != null) {
+      String base64Image = base64Encode(_imageFile!.readAsBytesSync());
+      String? userId = _auth.currentUser?.uid;
+      if (userId != null) {
+        DatabaseReference profilePictureRef =
+            _database.child('users').child(userId).child('profile_picture');
+        await profilePictureRef.set(base64Image);
+      }
+    }
+  }
+
+  Widget _buildInputField(String label, String initialValue,
+      Function(String) onChanged, String hintText,
+      {bool isPassword = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+      child: TextField(
+        obscureText: isPassword ? !_isPasswordVisible : false,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hintText,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          suffixIcon: isPassword
+              ? IconButton(
+                  icon: Icon(_isPasswordVisible
+                      ? Icons.visibility
+                      : Icons.visibility_off),
+                  onPressed: () {
+                    setState(() {
+                      _isPasswordVisible = !_isPasswordVisible;
+                    });
+                  },
+                )
+              : null,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.only(bottom: 40),
-          child: Column(
-            children: [
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 16.0),
-                  child: Text(
-                    'Profile',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-              Center(
-                child: GestureDetector(
-                  onTap: () {},
-                  child: ClipOval(
-                    child: FutureBuilder<String?>(
-                      future: Future.value(_profilePictureUrl),
-                      builder: (context, snapshot) {
-                        ImageProvider image;
-                        if (snapshot.hasData && snapshot.data != null) {
-                          image = const AssetImage('images/dog.jpeg');
-                        } else {
-                          image = const AssetImage('images/dog.jpeg');
-                        }
-                        return CircleAvatar(
-                          radius: 75,
-                          backgroundImage: image,
-                        );
-                      },
+        child: Container(
+          color: Color(0xFFFFF2D9), // Light cream background color
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 40),
+            child: Column(
+              children: [
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.only(top: 16.0),
+                    child: Text(
+                      'Profile',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
-              ),
-              const Center(child: Icon(Icons.photo_camera, size: 30)),
-              const Text('Pet details',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 5), //change
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                child: Center(
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: TextField(
-                      controller: TextEditingController(text: _description),
-                      style: const TextStyle(fontStyle: FontStyle.italic),
-                      decoration: const InputDecoration(
-                        hintText: 'Describe the furball of joy!',
-                        hintStyle: const TextStyle(fontStyle: FontStyle.italic),
-                        border: InputBorder.none,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                Center(
+                  child: GestureDetector(
+                    onTap: _pickImage,
+                    child: ClipOval(
+                      child: FutureBuilder<String?>(
+                        future: Future.value(_profilePictureUrl),
+                        builder: (context, snapshot) {
+                          ImageProvider<Object>? image;
+                          if (snapshot.hasData && snapshot.data != null) {
+                            image = MemoryImage(base64Decode(snapshot.data!));
+                          } else {
+                            image = null;
+                          }
+                          return CircleAvatar(
+                            radius: 75,
+                            backgroundImage: image,
+                          );
+                        },
                       ),
-                      onChanged: (value) {
-                        setState(() {
-                          _description = value;
-                        });
-                      },
                     ),
                   ),
                 ),
-              ),
-              _buildInputField('Name', _petName, (val) {
-                _petName = val;
-              }, 'Pet Name'),
-              _buildInputField('Breed', _breed, (val) {
-                _breed = val;
-              }, 'Breed'),
-              _buildInputField('Type', _type, (val) {
-                _type = val;
-              }, 'Type'),
-              _buildInputField('Gender', _gender, (val) {
-                _gender = val;
-              }, 'Gender'),
-              _buildInputField('Size', _size, (val) {
-                _size = val;
-              }, 'Size'),
-              _buildInputField('Weight', _weight, (val) {
-                _weight = val;
-              }, 'Weight'),
-              const SizedBox(height: 10),
-              const Text('Owner details',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 10),
-              _buildInputField('Name', _ownerName, (val) {
-                _ownerName = val;
-              }, 'Owner Name'),
-              _buildInputField('Address', _address, (val) {
-                _address = val;
-              }, 'Address'),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-                child: Row(
-                  children: [
-                    SizedBox(width: 100, child: Text('Change Password')),
-                    const SizedBox(width: 0),
-                    Expanded(
-                      child: _PasswordTextField(
+                const Center(child: Icon(Icons.photo_camera, size: 30)),
+                const Text('Pet details',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 5),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
+                  child: Center(
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: TextField(
+                        controller: TextEditingController(text: _description),
+                        style: const TextStyle(fontStyle: FontStyle.italic),
+                        decoration: const InputDecoration(
+                          hintText: 'Describe the furball of joy!',
+                          hintStyle: TextStyle(fontStyle: FontStyle.italic),
+                          border: InputBorder.none,
+                          contentPadding:
+                              EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                        ),
                         onChanged: (value) {
                           setState(() {
-                            _password = value;
+                            _description = value;
                           });
                         },
                       ),
                     ),
-                  ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 15),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: SizedBox(
-                  width: 100,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _saveData();
-                      _updatePassword();
-                    },
-                    child: const Text(
-                      "Save",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                _buildInputField('Name', _petName, (val) {
+                  _petName = val;
+                }, 'Pet Name'),
+                _buildInputField('Breed', _breed, (val) {
+                  _breed = val;
+                }, 'Breed'),
+                _buildInputField('Type', _type, (val) {
+                  _type = val;
+                }, 'Type'),
+                _buildInputField('Gender', _gender, (val) {
+                  _gender = val;
+                }, 'Gender'),
+                _buildInputField('Size', _size, (val) {
+                  _size = val;
+                }, 'Size'),
+                _buildInputField('Weight', _weight, (val) {
+                  _weight = val;
+                }, 'Weight'),
+                const SizedBox(height: 10),
+                const Text('Owner details',
+                    style:
+                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 10),
+                _buildInputField('Name', _ownerName, (val) {
+                  _ownerName = val;
+                }, 'Owner Name'),
+                _buildInputField('Address', _address, (val) {
+                  _address = val;
+                }, 'Address'),
+                _buildInputField('Password', _password, (val) {
+                  _password = val;
+                }, 'Password', isPassword: true),
+                const SizedBox(height: 15),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SizedBox(
+                    width: 100,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        _saveData();
+                        _updatePassword();
+                      },
+                      child: const Text(
+                        "Save",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFFBC0B),
-                      padding: const EdgeInsets.symmetric(vertical: 5), //change
-                      textStyle: const TextStyle(fontSize: 16),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFFBC0B),
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        textStyle: const TextStyle(fontSize: 16),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInputField(String label, String initialValue,
-      Function(String) onChanged, String? placeholder) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 0),
-      child: Row(
-        children: [
-          SizedBox(width: 100, child: Text(label)),
-          const SizedBox(width: 0),
-          Expanded(
-            child: TextField(
-              controller: TextEditingController(text: initialValue),
-              decoration: InputDecoration(
-                hintText: placeholder,
-                border: InputBorder.none,
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  onChanged(value);
-                });
-              },
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

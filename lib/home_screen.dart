@@ -1,3 +1,4 @@
+import 'dart:convert'; // For base64Decode
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -14,7 +15,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _petName = 'My Dog'; // Default pet name
-  String _petType = ''; // Default pet type
+  String _petType = 'Cat'; // Default pet type
+  String? _petImageBase64; // Uploaded image (nullable)
+
   final _database = FirebaseDatabase.instance.ref();
 
   @override
@@ -31,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
         setState(() {
           _petName = snapshot.child('petName').value as String? ?? 'My Dog';
           _petType = snapshot.child('petType').value as String? ?? 'Cat';
+          _petImageBase64 = snapshot.child('petImage').value as String?;
         });
       } else {
         print('No data available.');
@@ -66,52 +70,64 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           // Pet card section
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: 150,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ProfilePage()),
-                  );
-                },
-                child: Card(
-                  color: const Color(0xFFffbc0b),
-                  margin: const EdgeInsets.all(16.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _petName,
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              _petType,
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        ClipOval(
-                          child: Image.asset(
-                            'images/my_dog.jpeg',
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: 150,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                );
+              },
+              child: Card(
+                color: const Color(0xFFffbc0b),
+                margin: const EdgeInsets.all(16.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _petName,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(height: 5),
+                          Text(
+                            _petType,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      ClipOval(
+                        child: _petImageBase64 != null
+                            ? Image.memory(
+                                base64Decode(_petImageBase64!),
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.asset(
+                                'images/dog.jpeg', // <-- Your default dog image
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
+          ),
           // Four rounded square widgets
           Expanded(
             child: GridView.count(
@@ -188,8 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              // Delay the navigation to ensure Firebase logout completes
-              await Future.delayed(Duration(milliseconds: 500));
+              await Future.delayed(const Duration(milliseconds: 500));
               Navigator.pushReplacementNamed(context, '/signin');
             },
             child: const Text(
