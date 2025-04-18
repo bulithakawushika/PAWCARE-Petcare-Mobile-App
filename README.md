@@ -9,6 +9,6 @@
 
 The app uses Firebase for user authentication and data storage. It also utilizes a TensorFlow Lite model for predicting pet health issues.
 
-🔧 ##Modifying the Codebase
+🔧 ## Modifying the Codebase
 
 In cases where modifications to the codebase are intended (e.g., to address issues or implement enhancements), a new Firebase project should be created under your own account, and the corresponding google-services.json file should be placed within the android/app directory.
