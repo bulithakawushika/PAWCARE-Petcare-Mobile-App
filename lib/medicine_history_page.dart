@@ -121,8 +121,8 @@ class _MedicineHistoryPageState extends State<MedicineHistoryPage> {
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
-                                Colors.yellow,
-                                Colors.green,
+                                const Color(0xffFFBC0B),
+                                const Color(0xffFFBC0B),
                               ],
                             ),
                           ),

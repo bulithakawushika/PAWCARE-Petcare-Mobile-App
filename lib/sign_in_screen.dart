@@ -21,8 +21,8 @@ class _SignInScreenState extends State<SignInScreen> {
     });
 
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
-          .signInWithEmailAndPassword(
+      UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
@@ -40,7 +40,6 @@ class _SignInScreenState extends State<SignInScreen> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-
               builder: (context) => VeterinaryHomePage(
                 name: userData['name'] ?? '',
                 email: userData['email'] ?? '',
@@ -83,21 +82,22 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFFfff2d9),
-              Color(0xFFfff2d9),
-              Color(0xFFfcd262),
-            ],
-            stops: [0.0, 0.33, 1.0],
+      body: SingleChildScrollView(
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Color(0xFFfff2d9),
+                Color(0xFFfff2d9),
+                Color(0xFFfcd262),
+              ],
+              stops: [0.0, 0.33, 1.0],
+            ),
           ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.only(top: 48.0, left: 16.0, right: 16.0, bottom: 16.0),
+          padding: const EdgeInsets.only(
+              top: 48.0, left: 16.0, right: 16.0, bottom: 16.0),
           child: Column(
             children: [
               Image.asset(

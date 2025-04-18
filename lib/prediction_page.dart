@@ -4,7 +4,7 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
-import 'package:dropdown_search/dropdown_search.dart'; // <--- Added this
+import 'package:dropdown_search/dropdown_search.dart';
 
 class PredictionPage extends StatefulWidget {
   @override

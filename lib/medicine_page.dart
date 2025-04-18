@@ -18,11 +18,30 @@ class _MedicinePageState extends State<MedicinePage> {
   DateTime? nextDose;
 
   int _selectedIndex = 0;
+  String _petName = 'My Dog'; // Default pet name
+  String _petType = ''; // Default pet type
+  final _database = FirebaseDatabase.instance.ref();
 
   @override
   void initState() {
     super.initState();
     fetchMedicines();
+    _fetchPetData();
+  }
+
+  Future<void> _fetchPetData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final snapshot = await _database.child('users').child(user.uid).get();
+      if (snapshot.exists) {
+        setState(() {
+          _petName = snapshot.child('petName').value as String? ?? 'My Dog';
+          _petType = snapshot.child('petType').value as String? ?? 'Cat';
+        });
+      } else {
+        print('No data available.');
+      }
+    }
   }
 
   List<Map<dynamic, dynamic>> medicines = [];
@@ -93,16 +112,16 @@ class _MedicinePageState extends State<MedicinePage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Pet Name',
-                          style: TextStyle(
+                        Text(
+                          _petName,
+                          style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const Text(
-                          'Pet Type',
-                          style: TextStyle(fontSize: 12),
+                        Text(
+                          _petType,
+                          style: const TextStyle(fontSize: 12),
                         ),
                       ],
                     ),
@@ -211,7 +230,7 @@ class _MedicinePageState extends State<MedicinePage> {
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orangeAccent,
+              backgroundColor: const Color(0xFFffbc0b),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -231,6 +250,7 @@ class _MedicinePageState extends State<MedicinePage> {
               ),
             ),
           ),
+          const SizedBox(height: 20),
         ],
       ),
       floatingActionButton: FloatingActionButton(
