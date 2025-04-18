@@ -94,7 +94,7 @@ class _MedicinePageState extends State<MedicinePage> {
     return Scaffold(
       backgroundColor: const Color(0xFFfff2d9),
       appBar: AppBar(
-        title: const Text('Set Medicine'),
+        title: const Text('Medicine'),
       ),
       body: Column(
         children: [
@@ -226,50 +226,6 @@ class _MedicinePageState extends State<MedicinePage> {
                   return const SizedBox.shrink();
                 }
               },
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orangeAccent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => MedicineHistoryPage()),
-              );
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-              child: Text(
-                'History',
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFffbc0b),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => MedicineHistoryPage()),
-              );
-            },
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-              child: Text(
-                'History',
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
             ),
           ),
           const SizedBox(height: 20),
@@ -449,7 +405,14 @@ class _MedicinePageState extends State<MedicinePage> {
           );
         },
         backgroundColor: Colors.amber,
-        child: const Icon(Icons.add),
+        child: const Text(
+          '+',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 24,
+          ),
+        ),
       ),
     );
   }

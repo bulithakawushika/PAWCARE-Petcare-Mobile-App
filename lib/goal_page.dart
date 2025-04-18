@@ -120,7 +120,6 @@ class _GoalPageState extends State<GoalPage> {
         title: const Text(
           'Goals',
           style: TextStyle(
-            fontWeight: FontWeight.bold,
             fontSize: 24,
           ),
         ),
@@ -284,13 +283,6 @@ class _GoalPageState extends State<GoalPage> {
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showGoalDialog(context);
-        },
-        backgroundColor: Colors.amber,
-        child: const Icon(Icons.add),
       ),
     );
   }

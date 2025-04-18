@@ -49,13 +49,10 @@ class _VeterinaryPageState extends State<VeterinaryPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFFfff2d9),
-        title: Center(
-          child: Text(
-            'Veterinary',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
+        title: Text(
+          'Veterinary',
+          style: TextStyle(
+            color: Colors.black,
           ),
         ),
       ),
