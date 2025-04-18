@@ -20,7 +20,10 @@ class _VeterinaryPageState extends State<VeterinaryPage> {
   }
 
   Future<void> fetchVeterinaryData() async {
-    DatabaseEvent event = await databaseReference.orderByChild('type').equalTo('veterinary').once();
+    DatabaseEvent event = await databaseReference
+        .orderByChild('type')
+        .equalTo('veterinary')
+        .once();
     DataSnapshot dataSnapshot = event.snapshot;
 
     if (dataSnapshot.value != null) {
@@ -78,8 +81,12 @@ class _VeterinaryPageState extends State<VeterinaryPage> {
                   setState(() {
                     searchResults = allVeterinaries
                         .where((vet) =>
-                            vet.name.toLowerCase().contains(value.toLowerCase()) ||
-                            vet.address.toLowerCase().contains(value.toLowerCase()))
+                            vet.name
+                                .toLowerCase()
+                                .contains(value.toLowerCase()) ||
+                            vet.address
+                                .toLowerCase()
+                                .contains(value.toLowerCase()))
                         .toList();
                   });
                 },
@@ -91,7 +98,8 @@ class _VeterinaryPageState extends State<VeterinaryPage> {
                 itemBuilder: (context, index) {
                   final veterinary = searchResults[index];
                   return Card(
-                    margin: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 8.0),
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 32.0, vertical: 8.0),
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Row(

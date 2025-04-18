@@ -37,8 +37,10 @@ dependencies:
   firebase_core: ^2.24.2
   firebase_auth: ^4.17.3
   firebase_database: ^10.0.0
-  url_launcher: ^6.3.1
+  url_launcher: ^6.2.4
   intl: ^0.20.2
+  tflite_flutter: ^0.11.0
+  dropdown_search: ^5.0.6
 
 dev_dependencies:
   flutter_test:
@@ -65,6 +67,7 @@ flutter:
   assets:
     - images/Splash.png
     - images/
+    - model/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
