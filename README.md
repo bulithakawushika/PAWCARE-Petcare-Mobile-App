@@ -1,4 +1,4 @@
-# Pawcare
+# Paw Care
 
 ### Paw Care is an Android application built with Flutter that helps pet owners manage their pet's health and well-being. The app allows users to, 
 
