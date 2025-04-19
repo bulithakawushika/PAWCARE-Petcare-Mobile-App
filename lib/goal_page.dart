@@ -38,6 +38,9 @@ class _GoalPageState extends State<GoalPage> {
     if (dataSnapshot.value != null) {
       Map<dynamic, dynamic> data = dataSnapshot.value as Map;
       List<Goal> fetchedGoals = [];
+      List<Goal> defaultGoals = [];
+      List<Goal> customGoals = [];
+
       data.forEach((key, value) {
         final lastUpdated = value['lastUpdated'] ?? "";
         final currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -47,13 +50,43 @@ class _GoalPageState extends State<GoalPage> {
           isComplete = null; // Reset if the date doesn't match
         }
 
-        fetchedGoals.add(Goal(
+        Goal goal = Goal(
           goalId: key,
           title: value['title'],
           isComplete: isComplete,
           lastUpdated: lastUpdated,
-        ));
+        );
+
+        if (value['title'] == 'Provide morning meal' ||
+            value['title'] == 'Provide lunch meal' ||
+            value['title'] == 'Provide dinner meal' ||
+            value['title'] == 'Provide fresh water') {
+          defaultGoals.add(goal);
+        } else {
+          customGoals.add(goal);
+        }
       });
+
+      // Sort default goals
+      List<String> sortedDefaultGoalTitles = [
+        'Provide fresh water',
+        'Provide morning meal',
+        'Provide lunch meal',
+        'Provide dinner meal',
+      ];
+
+      List<Goal> sortedDefaultGoals = [];
+      for (String title in sortedDefaultGoalTitles) {
+        final goal = defaultGoals.where((goal) => goal.title == title);
+        if (goal.isNotEmpty) {
+          sortedDefaultGoals.add(goal.first);
+        }
+      }
+
+      // Combine sorted default goals with custom goals
+      fetchedGoals.addAll(sortedDefaultGoals);
+      fetchedGoals.addAll(customGoals);
+
       setState(() {
         goals = fetchedGoals;
       });

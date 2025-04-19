@@ -1,0 +1,2 @@
+D:/Pet/backup4/petap2/android/app/.cxx/Debug/484x2q5u/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/Pet/backup4/petap2/android/app/.cxx/Debug/484x2q5u/armeabi-v7a/CMakeFiles/rebuild_cache.dir
