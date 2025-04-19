@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GoalPage extends StatefulWidget {
   @override
@@ -9,62 +10,27 @@ class GoalPage extends StatefulWidget {
 }
 
 class _GoalPageState extends State<GoalPage> {
+  final user = FirebaseAuth.instance.currentUser;
+  late DatabaseReference userGoalsRef;
+  late DatabaseReference defaultGoalsRef;
   List<Goal> goals = [];
-  final databaseReference = FirebaseDatabase.instance.ref().child('goals');
 
   @override
   void initState() {
     super.initState();
-    _fetchGoals();
-    _scheduleDailyRenewal();
-  }
-
-  Future<void> _fetchGoals() async {
-    DatabaseEvent event = await databaseReference.once();
-    DataSnapshot dataSnapshot = event.snapshot;
-
-    if (dataSnapshot.value != null) {
-      Map<dynamic, dynamic> data = dataSnapshot.value as Map;
-      List<Goal> defaultGoals = [];
-      List<Goal> newGoals = [];
-      data.forEach((key, value) {
-        final lastUpdated = value['lastUpdated'] ?? "";
-        final currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-        bool? isComplete = value['isComplete'];
-
-        if (lastUpdated != currentDate) {
-          isComplete = null; // Reset if the date doesn't match
-        }
-
-        if (value['title'] == 'Provide morning meal' ||
-            value['title'] == 'Provide lunch meal' ||
-            value['title'] == 'Provide dinner meal' ||
-            value['title'] == 'Provide fresh water') {
-          defaultGoals.add(Goal(
-            goalId: key,
-            title: value['title'],
-            isComplete: isComplete,
-            lastUpdated: lastUpdated,
-          ));
-        } else {
-          newGoals.add(Goal(
-            goalId: key,
-            title: value['title'],
-            isComplete: isComplete,
-            lastUpdated: lastUpdated,
-          ));
-        }
-      });
-      setState(() {
-        goals = defaultGoals + newGoals;
-      });
+    if (user != null) {
+      userGoalsRef =
+          FirebaseDatabase.instance.ref().child('users/${user!.uid}/goals');
+      defaultGoalsRef = FirebaseDatabase.instance.ref().child('default_goals');
+      _ensureDefaultGoals();
+      _fetchGoals();
+      _scheduleDailyRenewal();
     } else {
-      // If no data exists, create default goals in Firebase
-      _createDefaultGoals();
+      print('User not logged in');
     }
   }
 
-  Future<void> _createDefaultGoals() async {
+  Future<void> _ensureDefaultGoals() async {
     List<String> defaultGoalTitles = [
       'Provide morning meal',
       'Provide lunch meal',
@@ -72,27 +38,83 @@ class _GoalPageState extends State<GoalPage> {
       'Provide fresh water',
     ];
 
-    // Use a loop to create default goals in the specified order
-    for (String title in defaultGoalTitles) {
-      // Check if the goal already exists before creating it
-      DatabaseEvent event = await databaseReference.orderByChild('title').equalTo(title).once();
-      DataSnapshot dataSnapshot = event.snapshot;
+    final defaultSnapshot = await defaultGoalsRef.once();
+    if (defaultSnapshot.snapshot.value == null) {
+      for (String title in defaultGoalTitles) {
+        await defaultGoalsRef.child(title).set(true);
+      }
+    }
 
-      if (dataSnapshot.value == null) {
-        DatabaseReference newGoalRef = databaseReference.push();
-        await newGoalRef.set({
+    for (String title in defaultGoalTitles) {
+      String goalKey = 'default_goal_${title.replaceAll(" ", "_")}';
+      final userSnapshot = await userGoalsRef.child(goalKey).once();
+      if (userSnapshot.snapshot.value == null) {
+        await userGoalsRef.child(goalKey).set({
           'title': title,
           'isComplete': null,
           'lastUpdated': DateFormat('yyyy-MM-dd').format(DateTime.now()),
         });
       }
     }
-    _fetchGoals(); // Fetch the newly created goals
+  }
+
+  Future<void> _fetchGoals() async {
+    final event = await userGoalsRef.once();
+    final dataSnapshot = event.snapshot;
+    List<Goal> fetchedGoals = [];
+
+    if (dataSnapshot.value != null) {
+      Map<dynamic, dynamic> data = dataSnapshot.value as Map;
+      List<Goal> defaultGoals = [];
+      List<Goal> customGoals = [];
+
+      data.forEach((key, value) {
+        final title = value['title'];
+        final isComplete = value['isComplete'];
+        final lastUpdated = value['lastUpdated'] ?? "";
+        final currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+        final isDefault = key.startsWith('default_goal_');
+
+        Goal goal = Goal(
+          goalId: key,
+          title: title,
+          isComplete: lastUpdated == currentDate ? isComplete : null,
+          lastUpdated: lastUpdated,
+          isDefault: isDefault,
+        );
+
+        if (isDefault) {
+          defaultGoals.add(goal);
+        } else {
+          customGoals.add(goal);
+        }
+      });
+
+      List<String> sortedDefaultTitles = [
+        'Provide fresh water',
+        'Provide morning meal',
+        'Provide lunch meal',
+        'Provide dinner meal',
+      ];
+
+      List<Goal> sortedDefaultGoals = [];
+      for (var title in sortedDefaultTitles) {
+        final match = defaultGoals.firstWhere((g) => g.title == title,
+            orElse: () => Goal(title: '', isDefault: true));
+        if (match.title != '') sortedDefaultGoals.add(match);
+      }
+
+      fetchedGoals.addAll(sortedDefaultGoals);
+      fetchedGoals.addAll(customGoals);
+
+      setState(() => goals = fetchedGoals);
+    }
   }
 
   void _scheduleDailyRenewal() {
     final now = DateTime.now();
-    DateTime midnight = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    DateTime midnight =
+        DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
     Duration timeUntilMidnight = midnight.difference(now);
     Timer(timeUntilMidnight, () {
       setState(() {
@@ -102,27 +124,101 @@ class _GoalPageState extends State<GoalPage> {
           _updateGoalInFirebase(goal);
         }
       });
-      _scheduleDailyRenewal(); // Schedule the next renewal
+      _scheduleDailyRenewal();
     });
   }
 
   Future<void> _updateGoalInFirebase(Goal goal) async {
-    await databaseReference.child(goal.goalId!).update({
+    await userGoalsRef.child(goal.goalId!).update({
       'isComplete': goal.isComplete,
-      'lastUpdated': goal.lastUpdated ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      'lastUpdated':
+          goal.lastUpdated ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
     });
+  }
+
+  Future<void> _saveGoalToFirebase(String title, TimeOfDay time) async {
+    DatabaseReference newGoalRef = userGoalsRef.push();
+    await newGoalRef.set({
+      'title': title,
+      'time': '${time.hour}:${time.minute}',
+      'isComplete': null,
+      'lastUpdated': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+    });
+    _fetchGoals();
+  }
+
+  Future<void> _deleteGoal(Goal goal) async {
+    await userGoalsRef.child(goal.goalId!).remove();
+    _fetchGoals();
+  }
+
+  void _showGoalDialog(BuildContext context) {
+    String goalTitle = '';
+    TimeOfDay? goalTime;
+
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFFfff2d9),
+        content: SizedBox(
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Add a goal",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 20),
+              TextFormField(
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  labelText: 'Goal Name',
+                  border: const OutlineInputBorder(
+                      borderRadius: BorderRadius.all(Radius.circular(30))),
+                ),
+                onChanged: (val) => goalTitle = val,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
+                onPressed: () async {
+                  TimeOfDay? selectedTime = await showTimePicker(
+                      context: context, initialTime: TimeOfDay.now());
+                  if (selectedTime != null) goalTime = selectedTime;
+                },
+                child: const Text('Set Goal Time',
+                    style: TextStyle(color: Colors.black)),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
+                onPressed: () {
+                  if (goalTitle.isNotEmpty && goalTime != null) {
+                    _saveGoalToFirebase(goalTitle, goalTime!);
+                    Navigator.pop(context);
+                  }
+                },
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Add', style: TextStyle(color: Colors.black)),
+                    Icon(Icons.arrow_right, color: Colors.black),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Goals',
-          style: TextStyle(
-            fontSize: 24,
-          ),
-        ),
+        title: const Text('Goals', style: TextStyle(fontSize: 24)),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 20.0),
@@ -132,19 +228,15 @@ class _GoalPageState extends State<GoalPage> {
                 padding: const EdgeInsets.all(8.0),
                 child: TextButton(
                   style: ButtonStyle(
-                    backgroundColor: MaterialStateProperty.all<Color>(const Color(0xFFffbc0b)),
+                    backgroundColor: MaterialStateProperty.all<Color>(
+                        const Color(0xFFffbc0b)),
                   ),
-                  onPressed: () {
-                    _showGoalDialog(context);
-                  },
-                  child: const Text(
-                    'Set Goal',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  onPressed: () => _showGoalDialog(context),
+                  child: const Text('Set Goal',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold)),
                 ),
               ),
             ),
@@ -164,23 +256,21 @@ class _GoalPageState extends State<GoalPage> {
             ),
             Positioned(
               top: MediaQuery.of(context).size.height / 8 - 75,
-              left: MediaQuery.of(context).size.width / 2 - MediaQuery.of(context).size.width / 4,
+              left: MediaQuery.of(context).size.width / 2 -
+                  MediaQuery.of(context).size.width / 4,
               child: SizedBox(
                 width: MediaQuery.of(context).size.width / 2,
                 height: 150,
-                child: Image.asset(
-                  'images/goals.png',
-                  fit: BoxFit.contain,
-                ),
+                child: Image.asset('images/goals.png', fit: BoxFit.contain),
               ),
             ),
             Container(
-              margin: EdgeInsets.only(top: MediaQuery.of(context).size.height / 4),
-              color: const Color(0xFFffeecc),
+              margin:
+                  EdgeInsets.only(top: MediaQuery.of(context).size.height / 4),
               height: MediaQuery.of(context).size.height * 3 / 4,
               child: ListView.builder(
                 itemCount: goals.length,
-                itemBuilder: (context, index) {
+                itemBuilder: (_, index) {
                   final goal = goals[index];
                   Color statusColor;
                   String statusText = "";
@@ -199,7 +289,9 @@ class _GoalPageState extends State<GoalPage> {
                     margin: const EdgeInsets.all(8.0),
                     padding: const EdgeInsets.all(8.0),
                     decoration: BoxDecoration(
-                      color: goal.isComplete != null ? Colors.grey[300] : Colors.white,
+                      color: goal.isComplete != null
+                          ? Colors.grey[300]
+                          : Colors.white,
                       border: Border.all(color: Colors.grey),
                       borderRadius: BorderRadius.circular(10),
                     ),
@@ -212,41 +304,25 @@ class _GoalPageState extends State<GoalPage> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  goal.title,
-                                  style: const TextStyle(
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                if (goal.title == 'Provide morning meal' ||
-                                    goal.title == 'Provide lunch meal' ||
-                                    goal.title == 'Provide dinner meal' ||
-                                    goal.title == 'Provide fresh water')
-                                  const Text(
-                                    'Default',
-                                    style: TextStyle(
-                                      color: Colors.black54,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  )
-                                else
-                                  InkWell(
-                                    onTap: () {
-                                      _deleteGoal(goal);
-                                    },
-                                    child: const Text(
-                                      'Delete',
+                                Text(goal.title,
+                                    style: const TextStyle(color: Colors.grey)),
+                                if (goal.isDefault)
+                                  const Text('Default',
                                       style: TextStyle(
-                                        color: Colors.black54,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
+                                          color: Colors.black54,
+                                          fontWeight: FontWeight.bold))
+                                else
+                                  GestureDetector(
+                                    onTap: () => _deleteGoal(goal),
+                                    child: const Text('Delete',
+                                        style: TextStyle(
+                                            color: Colors.black54,
+                                            fontWeight: FontWeight.bold)),
                                   ),
-                                  if (goal.isComplete != null)
-                                    Text(
-                                      "Status: $statusText",
-                                      style: TextStyle(color: statusColor, fontSize: 16),
-                                    ),
+                                if (goal.isComplete != null)
+                                  Text("Status: $statusText",
+                                      style: TextStyle(
+                                          color: statusColor, fontSize: 16)),
                               ],
                             ),
                             Row(
@@ -256,7 +332,9 @@ class _GoalPageState extends State<GoalPage> {
                                   onPressed: () {
                                     setState(() {
                                       goal.isComplete = true;
-                                      goal.lastUpdated = DateFormat('yyyy-MM-dd').format(DateTime.now());
+                                      goal.lastUpdated =
+                                          DateFormat('yyyy-MM-dd')
+                                              .format(DateTime.now());
                                       _updateGoalInFirebase(goal);
                                     });
                                   },
@@ -266,7 +344,9 @@ class _GoalPageState extends State<GoalPage> {
                                   onPressed: () {
                                     setState(() {
                                       goal.isComplete = false;
-                                      goal.lastUpdated = DateFormat('yyyy-MM-dd').format(DateTime.now());
+                                      goal.lastUpdated =
+                                          DateFormat('yyyy-MM-dd')
+                                              .format(DateTime.now());
                                       _updateGoalInFirebase(goal);
                                     });
                                   },
@@ -286,124 +366,21 @@ class _GoalPageState extends State<GoalPage> {
       ),
     );
   }
-
-  Future<void> _deleteGoal(Goal goal) async {
-    await databaseReference.child(goal.goalId!).remove();
-    _fetchGoals(); // Refresh the list after deleting
-  }
-
-  void _showGoalDialog(BuildContext context) {
-    String goalTitle = '';
-    TimeOfDay? goalTime;
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFFfff2d9),
-          content: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "Add a goal",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  style: const TextStyle(color: Colors.black),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: Colors.white,
-                    labelText: 'Goal Name',
-                    labelStyle: const TextStyle(color: Colors.grey),
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(30.0)),
-                    ),
-                  ),
-                  onChanged: (value) {
-                    goalTitle = value;
-                  },
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                  ),
-                  onPressed: () async {
-                    TimeOfDay? selectedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (selectedTime != null) {
-                      goalTime = selectedTime;
-                    }
-                  },
-                  child: const Text(
-                    'Set Goal Time',
-                    style: TextStyle(color: Colors.black),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.amber,
-                  ),
-                  onPressed: () {
-                    if (goalTitle.isNotEmpty && goalTime != null) {
-                      _saveGoalToFirebase(goalTitle, goalTime!);
-                      Navigator.of(context).pop();
-                    }
-                  },
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'Add',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                      Icon(Icons.arrow_right, color: Colors.black),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Future<void> _saveGoalToFirebase(String title, TimeOfDay time) async {
-    DatabaseReference newGoalRef = databaseReference.push();
-    await newGoalRef.set({
-      'title': title,
-      'time': '${time.hour}:${time.minute}',
-      'isComplete': null,
-      'lastUpdated': DateFormat('yyyy-MM-dd').format(DateTime.now()),
-    });
-    _fetchGoals(); // Refresh the list after saving
-  }
 }
 
 class Goal {
   String? goalId;
   String title;
   bool? isComplete;
-  TimeOfDay? time;
   String? lastUpdated;
+  bool isDefault;
 
   Goal({
     this.goalId,
     required this.title,
     this.isComplete,
-    this.time,
     this.lastUpdated,
+    this.isDefault = false,
   });
 }
 
@@ -425,7 +402,6 @@ class HalfCurveClipper extends CustomClipper<Path> {
 
     path.lineTo(size.width, 0.0);
     path.close();
-
     return path;
   }
 

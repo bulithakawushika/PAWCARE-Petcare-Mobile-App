@@ -51,14 +51,12 @@ class _PetSignUpScreenState extends State<PetSignUpScreen> {
       });
 
       try {
-        // Create user in Firebase Authentication
         UserCredential userCredential =
             await _auth.createUserWithEmailAndPassword(
           email: _ownerEmailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // Store pet details in Firebase Realtime Database
         await _database.child('users').child(userCredential.user!.uid).set({
           'type': 'pet',
           'petName': _petNameController.text.trim(),
@@ -68,7 +66,6 @@ class _PetSignUpScreenState extends State<PetSignUpScreen> {
           'petType': _type,
         });
 
-        // Navigate to home screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => HomeScreen()),
@@ -86,10 +83,42 @@ class _PetSignUpScreenState extends State<PetSignUpScreen> {
     }
   }
 
+  Widget _buildPetTypeInfo() {
+    if (_type == null) {
+      return SizedBox.shrink(); // <<< this makes sure no white space
+    }
+
+    String message = '';
+    if (_type == 'Cat') {
+      message =
+          '🐱 You selected Cat! Make sure to provide proper vaccinations and a cozy environment.';
+    } else if (_type == 'Dog') {
+      message =
+          '🐶 You selected Dog! Make sure to ensure regular walks and healthy meals.';
+    }
+
+    return Container(
+      margin: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: EdgeInsets.all(16),
+      child: Text(
+        message,
+        style: TextStyle(fontWeight: FontWeight.bold),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -102,99 +131,97 @@ class _PetSignUpScreenState extends State<PetSignUpScreen> {
             stops: [0.0, 0.33, 1.0],
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: _isLoading
-              ? Center(child: CircularProgressIndicator())
-              : Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        SizedBox(height: 30),
-                        Image.asset(
-                          'images/vetsign.png',
-                          height: 100,
-                        ),
-                        SizedBox(height: 20),
-                        Text(
-                          'Pet Sign Up',
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
+        child: _isLoading
+            ? Center(child: CircularProgressIndicator())
+            : SafeArea(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(height: 30),
+                          Image.asset(
+                            'images/vetsign.png',
+                            height: 100,
                           ),
-                        ),
-                        TextFormField(
-                          controller: _ownerNameController,
-                          decoration: InputDecoration(labelText: 'Owner Name'),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your owner name';
-                            }
-                            return null;
-                          },
-                        ),
-                        TextFormField(
-                          controller: _ownerEmailController,
-                          decoration: InputDecoration(labelText: 'Owner Email'),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your owner email';
-                            }
-                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                              return 'Please enter a valid email';
-                            }
-                            return null;
-                          },
-                        ),
-                        TextFormField(
-                          controller: _petNameController,
-                          decoration: InputDecoration(labelText: 'Pet Name'),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your pet name';
-                            }
-                            return null;
-                          },
-                        ),
-                        TextFormField(
-                          controller: _birthdayController,
-                          decoration: InputDecoration(labelText: 'Birthday'),
-                          readOnly: true,
-                          onTap: () => _selectBirthday(context),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please select your birthday';
-                            }
-                            return null;
-                          },
-                        ),
-                        Theme(
-                          data: Theme.of(context).copyWith(
-                            popupMenuTheme: PopupMenuThemeData(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
+                          SizedBox(height: 20),
+                          Text(
+                            'Pet Sign Up',
+                            style: TextStyle(
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                          child: DropdownButtonFormField<String>(
+                          SizedBox(height: 20),
+                          TextFormField(
+                            controller: _ownerNameController,
+                            decoration:
+                                InputDecoration(labelText: 'Owner Name'),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your owner name';
+                              }
+                              return null;
+                            },
+                          ),
+                          TextFormField(
+                            controller: _ownerEmailController,
+                            decoration:
+                                InputDecoration(labelText: 'Owner Email'),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your owner email';
+                              }
+                              if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                  .hasMatch(value)) {
+                                return 'Please enter a valid email';
+                              }
+                              return null;
+                            },
+                          ),
+                          TextFormField(
+                            controller: _petNameController,
+                            decoration: InputDecoration(labelText: 'Pet Name'),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your pet name';
+                              }
+                              return null;
+                            },
+                          ),
+                          TextFormField(
+                            controller: _birthdayController,
+                            decoration: InputDecoration(labelText: 'Birthday'),
+                            readOnly: true,
+                            onTap: () => _selectBirthday(context),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please select your birthday';
+                              }
+                              return null;
+                            },
+                          ),
+                          DropdownButtonFormField<String>(
                             decoration: InputDecoration(labelText: 'Type'),
                             value: _type,
-                            items: <String>['Cat', 'Dog']
-                                .map<DropdownMenuItem<String>>((String value) {
-                              return DropdownMenuItem<String>(
-                                value: value,
+                            items: ['Cat', 'Dog'].map((type) {
+                              return DropdownMenuItem(
+                                value: type,
                                 child: Center(
                                   child: Text(
-                                    value,
-                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                    type,
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
                                   ),
                                 ),
                               );
                             }).toList(),
-                            onChanged: (String? newValue) {
+                            onChanged: (value) {
                               setState(() {
-                                _type = newValue!;
+                                _type = value;
                               });
                             },
                             validator: (value) {
@@ -204,56 +231,51 @@ class _PetSignUpScreenState extends State<PetSignUpScreen> {
                               return null;
                             },
                           ),
-                        ),
-                        if (_type != null)
-                          Container(
-                            margin: EdgeInsets.symmetric(horizontal: 20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(10),
+                          _buildPetTypeInfo(),
+                          TextFormField(
+                            controller: _passwordController,
+                            decoration: InputDecoration(labelText: 'Password'),
+                            obscureText: true,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Please enter your password';
+                              }
+                              if (value.length < 6) {
+                                return 'Password must be at least 6 characters';
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: _registerPet,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xFFffbc0b),
+                              textStyle: TextStyle(color: Colors.white),
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 32, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
                             ),
-                            padding: EdgeInsets.all(16),
-                            child: Text('White Pop Thing Content'),
+                            child: Text(
+                              'Register',
+                              style: TextStyle(color: Colors.white),
+                            ),
                           ),
-                        SizedBox(height: 10),
-                        TextFormField(
-                          controller: _passwordController,
-                          decoration: InputDecoration(labelText: 'Password'),
-                          obscureText: true,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
-                            }
-                            if (value.length < 6) {
-                              return 'Password must be at least 6 characters';
-                            }
-                            return null;
-                          },
-                        ),
-                        SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: _registerPet,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Color(0xFFffbc0b),
-                            textStyle: TextStyle(color: Colors.white),
+                          SizedBox(height: 10),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/signin');
+                            },
+                            child: Text('Already have an account? Login'),
                           ),
-                          child: Text(
-                            'Register',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/signin');
-                          },
-                          child: Text('Already have an account? Login'),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-        ),
+              ),
       ),
     );
   }

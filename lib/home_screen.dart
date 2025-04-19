@@ -1,6 +1,10 @@
+import 'dart:convert'; // For base64Decode
+import 'dart:io';
+import 'dart:convert'; // For base64Decode
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:image_picker/image_picker.dart';
 import 'profile_page.dart';
 import 'medicine_page.dart';
 import 'prediction_page.dart';
@@ -14,13 +18,32 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String _petName = 'My Dog'; // Default pet name
-  String _petType = ''; // Default pet type
+  String _petType = 'Cat'; // Default pet type
+  String? _petImageBase64; // Uploaded image (nullable)
+  String _defaultImagePath = 'images/dog.jpeg';
+
   final _database = FirebaseDatabase.instance.ref();
+  String? _profilePictureUrl;
 
   @override
   void initState() {
     super.initState();
     _fetchPetData();
+    loadProfilePicture();
+  }
+
+  Future<void> loadProfilePicture() async {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      DatabaseReference profilePictureRef =
+          _database.child('users').child(userId).child('profile_picture');
+
+      profilePictureRef.onValue.listen((event) {
+        setState(() {
+          _profilePictureUrl = event.snapshot.value as String?;
+        });
+      });
+    }
   }
 
   Future<void> _fetchPetData() async {
@@ -55,63 +78,89 @@ class _HomeScreenState extends State<HomeScreen> {
               height: MediaQuery.of(context).size.height * 0.20,
               color: const Color(0xFFffbc0b),
               child: Align(
-                alignment: Alignment.center,
-                child: Image.asset(
-                  'images/pet-care-home.png',
-                  width: MediaQuery.of(context).size.width * 0.45,
-                  height: MediaQuery.of(context).size.height * 0.20 * 0.75,
-                  fit: BoxFit.contain,
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 10.0),
+                  child: Image.asset(
+                    'images/pet-care-home.png',
+                    width: MediaQuery.of(context).size.width * 0.45,
+                    height: MediaQuery.of(context).size.height * 0.20 * 0.75,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
             ),
           ),
           // Pet card section
-            SizedBox(
-              width: MediaQuery.of(context).size.width * 0.8,
-              height: 150,
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ProfilePage()),
-                  );
-                },
-                child: Card(
-                  color: const Color(0xFFffbc0b),
-                  margin: const EdgeInsets.all(16.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _petName,
-                              style: TextStyle(
-                                  fontSize: 20, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              _petType,
-                              style: TextStyle(fontSize: 12),
-                            ),
-                          ],
-                        ),
-                        ClipOval(
-                          child: Image.asset(
-                            'images/my_dog.jpeg',
-                            width: 100,
-                            height: 100,
-                            fit: BoxFit.cover,
+          SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            height: 150,
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          ProfilePage(petName: _petName, petType: _petType)),
+                );
+              },
+              child: Card(
+                color: const Color(0xFFffbc0b),
+                margin: const EdgeInsets.all(16.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            _petName,
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(height: 5),
+                          Text(
+                            _petType,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      ClipOval(
+                        child: _profilePictureUrl != null
+                            ? FutureBuilder<String?>(
+                                future: Future.value(_profilePictureUrl),
+                                builder: (context, snapshot) {
+                                  ImageProvider<Object>? image;
+                                  if (snapshot.hasData &&
+                                      snapshot.data != null) {
+                                    image = MemoryImage(
+                                        base64Decode(snapshot.data!));
+                                  } else {
+                                    image = AssetImage('images/dog.jpeg');
+                                  }
+                                  return CircleAvatar(
+                                    radius: 50,
+                                    backgroundImage: image,
+                                  );
+                                },
+                              )
+                            : const CircleAvatar(
+                                radius: 50,
+                                backgroundImage: AssetImage('images/dog.jpeg'),
+                              ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
+          ),
           // Four rounded square widgets
           Expanded(
             child: GridView.count(
@@ -188,8 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              // Delay the navigation to ensure Firebase logout completes
-              await Future.delayed(Duration(milliseconds: 500));
+              await Future.delayed(const Duration(milliseconds: 500));
               Navigator.pushReplacementNamed(context, '/signin');
             },
             child: const Text(

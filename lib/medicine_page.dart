@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert';
 import 'medicine_history_page.dart';
 
 class MedicinePage extends StatefulWidget {
@@ -21,12 +22,28 @@ class _MedicinePageState extends State<MedicinePage> {
   String _petName = 'My Dog'; // Default pet name
   String _petType = ''; // Default pet type
   final _database = FirebaseDatabase.instance.ref();
+  String? _profilePictureUrl;
 
   @override
   void initState() {
     super.initState();
     fetchMedicines();
     _fetchPetData();
+    loadProfilePicture();
+  }
+
+  Future<void> loadProfilePicture() async {
+    String? userId = FirebaseAuth.instance.currentUser?.uid;
+    if (userId != null) {
+      DatabaseReference profilePictureRef =
+          _database.child('users').child(userId).child('profile_picture');
+
+      profilePictureRef.onValue.listen((event) {
+        setState(() {
+          _profilePictureUrl = event.snapshot.value as String?;
+        });
+      });
+    }
   }
 
   Future<void> _fetchPetData() async {
@@ -126,12 +143,26 @@ class _MedicinePageState extends State<MedicinePage> {
                       ],
                     ),
                     ClipOval(
-                      child: Image.asset(
-                        'images/my_dog.jpeg',
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
+                      child: _profilePictureUrl != null
+                          ? FutureBuilder<String?>(
+                              future: Future.value(_profilePictureUrl),
+                              builder: (context, snapshot) {
+                                ImageProvider<Object>? image;
+                                if (snapshot.hasData && snapshot.data != null) {
+                                  image = MemoryImage(base64Decode(snapshot.data!));
+                                } else {
+                                  image = AssetImage('images/my_dog.jpeg');
+                                }
+                                return CircleAvatar(
+                                  radius: 50,
+                                  backgroundImage: image,
+                                );
+                              },
+                            )
+                          : const CircleAvatar(
+                              radius: 50,
+                              backgroundImage: AssetImage('images/my_dog.jpeg'),
+                            ),
                     ),
                   ],
                 ),
@@ -226,6 +257,27 @@ class _MedicinePageState extends State<MedicinePage> {
                   return const SizedBox.shrink();
                 }
               },
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFffbc0b),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => MedicineHistoryPage()),
+              );
+            },
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+              child: Text(
+                'History',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
           const SizedBox(height: 20),

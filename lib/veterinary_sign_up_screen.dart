@@ -1,8 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'home_screen.dart';
 import 'veterinary_home_page.dart';
 
 class VeterinarySignUpScreen extends StatefulWidget {
@@ -51,6 +49,8 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
+        width: double.infinity,
+        height: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -63,16 +63,17 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
             stops: [0.0, 0.33, 1.0],
           ),
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+        child: SafeArea(
           child: _isLoading
               ? Center(child: CircularProgressIndicator())
-              : Form(
-                  key: _formKey,
-                  child: SingleChildScrollView(
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Form(
+                    key: _formKey,
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        SizedBox(height: 30),
+                        SizedBox(height: 20),
                         Image.asset(
                           'images/vetsign.png',
                           height: 100,
@@ -85,6 +86,7 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        SizedBox(height: 20),
                         TextFormField(
                           controller: _nameController,
                           decoration: InputDecoration(labelText: 'Name'),
@@ -102,7 +104,8 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
                             if (value == null || value.isEmpty) {
                               return 'Please enter your email';
                             }
-                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                            if (!RegExp(r'^[^@]+@[^@]+\.[^@]+')
+                                .hasMatch(value)) {
                               return 'Please enter a valid email';
                             }
                             return null;
@@ -163,14 +166,13 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
                           onPressed: () async {
                             if (_formKey.currentState!.validate()) {
                               setState(() => _isLoading = true);
-
-                              UserCredential userCredential =
-                                  await _auth.createUserWithEmailAndPassword(
-                                email: _emailController.text.trim(),
-                                password: _passwordController.text.trim(),
-                              );
-
                               try {
+                                UserCredential userCredential =
+                                    await _auth.createUserWithEmailAndPassword(
+                                  email: _emailController.text.trim(),
+                                  password: _passwordController.text.trim(),
+                                );
+
                                 await _database
                                     .child('users')
                                     .child(userCredential.user!.uid)
@@ -182,35 +184,33 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
                                   'address': _addressController.text.trim(),
                                   'birthday': _birthdayController.text.trim(),
                                 });
-                                print("After database write");
-                              } catch (dbError) {
-                                print("Database error: $dbError");
+
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => VeterinaryHomePage(
+                                      name: _nameController.text.trim(),
+                                      email: _emailController.text.trim(),
+                                      phone: _phoneController.text.trim(),
+                                      address: _addressController.text.trim(),
+                                      birthday: _birthdayController.text.trim(),
+                                    ),
+                                  ),
+                                );
+                              } on FirebaseAuthException catch (e) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                      content: Text("Database write failed")),
-                                );
-                              }
-                              print("After database write try-catch");
-
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => VeterinaryHomePage(
-                                    name: _nameController.text.trim(),
-                                    email: _emailController.text.trim(),
-                                    phone: _phoneController.text.trim(),
-                                    address: _addressController.text.trim(),
-                                    birthday: _birthdayController.text.trim(),
+                                    content:
+                                        Text(e.message ?? "Sign up failed"),
                                   ),
-                                ),
-                              );
-
-                              setState(() => _isLoading = false);
+                                );
+                              } finally {
+                                setState(() => _isLoading = false);
+                              }
                             }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Color(0xFFffbc0b),
-                            textStyle: TextStyle(color: Colors.white),
                           ),
                           child: Text(
                             'Register',
@@ -223,18 +223,11 @@ class _VeterinarySignUpScreenState extends State<VeterinarySignUpScreen> {
                           },
                           child: const Text('Already have an account? Login'),
                         ),
+                        SizedBox(height: 20),
                       ],
                     ),
                   ),
                 ),
-        ),
-      ),
-      bottomNavigationBar: const SizedBox(
-        height: 10,
-        child: DecoratedBox(
-          decoration: const BoxDecoration(
-            color: Color(0xFFfcd262),
-          ),
         ),
       ),
     );
