@@ -2,31 +2,42 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GoalPage extends StatefulWidget {
   @override
   _GoalPageState createState() => _GoalPageState();
 }
 
+final user = FirebaseAuth.instance.currentUser;
+late DatabaseReference databaseReference;
+
 class _GoalPageState extends State<GoalPage> {
   List<Goal> goals = [];
-  final databaseReference = FirebaseDatabase.instance.ref().child('goals');
 
   @override
   void initState() {
     super.initState();
+    if (user != null) {
+      databaseReference = FirebaseDatabase.instance.ref().child('users').child(user!.uid).child('goals');
+    } else {
+      // Handle the case where the user is not logged in
+      // For example, redirect to the login page or display an error message
+      print('User not logged in');
+    }
     _fetchGoals();
     _scheduleDailyRenewal();
   }
 
   Future<void> _fetchGoals() async {
+    if (databaseReference == null) return;
+
     DatabaseEvent event = await databaseReference.once();
     DataSnapshot dataSnapshot = event.snapshot;
 
     if (dataSnapshot.value != null) {
       Map<dynamic, dynamic> data = dataSnapshot.value as Map;
-      List<Goal> defaultGoals = [];
-      List<Goal> newGoals = [];
+      List<Goal> fetchedGoals = [];
       data.forEach((key, value) {
         final lastUpdated = value['lastUpdated'] ?? "";
         final currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
@@ -36,27 +47,15 @@ class _GoalPageState extends State<GoalPage> {
           isComplete = null; // Reset if the date doesn't match
         }
 
-        if (value['title'] == 'Provide morning meal' ||
-            value['title'] == 'Provide lunch meal' ||
-            value['title'] == 'Provide dinner meal' ||
-            value['title'] == 'Provide fresh water') {
-          defaultGoals.add(Goal(
-            goalId: key,
-            title: value['title'],
-            isComplete: isComplete,
-            lastUpdated: lastUpdated,
-          ));
-        } else {
-          newGoals.add(Goal(
-            goalId: key,
-            title: value['title'],
-            isComplete: isComplete,
-            lastUpdated: lastUpdated,
-          ));
-        }
+        fetchedGoals.add(Goal(
+          goalId: key,
+          title: value['title'],
+          isComplete: isComplete,
+          lastUpdated: lastUpdated,
+        ));
       });
       setState(() {
-        goals = defaultGoals + newGoals;
+        goals = fetchedGoals;
       });
     } else {
       // If no data exists, create default goals in Firebase
@@ -65,6 +64,8 @@ class _GoalPageState extends State<GoalPage> {
   }
 
   Future<void> _createDefaultGoals() async {
+    if (databaseReference == null) return;
+
     List<String> defaultGoalTitles = [
       'Provide morning meal',
       'Provide lunch meal',
@@ -107,6 +108,8 @@ class _GoalPageState extends State<GoalPage> {
   }
 
   Future<void> _updateGoalInFirebase(Goal goal) async {
+    if (databaseReference == null) return;
+
     await databaseReference.child(goal.goalId!).update({
       'isComplete': goal.isComplete,
       'lastUpdated': goal.lastUpdated ?? DateFormat('yyyy-MM-dd').format(DateTime.now()),
@@ -288,6 +291,8 @@ class _GoalPageState extends State<GoalPage> {
   }
 
   Future<void> _deleteGoal(Goal goal) async {
+    if (databaseReference == null) return;
+
     await databaseReference.child(goal.goalId!).remove();
     _fetchGoals(); // Refresh the list after deleting
   }
@@ -380,6 +385,8 @@ class _GoalPageState extends State<GoalPage> {
   }
 
   Future<void> _saveGoalToFirebase(String title, TimeOfDay time) async {
+    if (databaseReference == null) return;
+
     DatabaseReference newGoalRef = databaseReference.push();
     await newGoalRef.set({
       'title': title,
