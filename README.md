@@ -19,11 +19,6 @@ PAWCARE integrates artificial intelligence to revolutionize pet healthcare throu
 
 - **Symptom Recognition**: AI models trained on veterinary data identify potential health concerns from behavioral patterns and physical symptoms
 
-**Predictive Health Analytics**
-- **Behavioral Pattern Analysis**: Continuous monitoring of eating habits, activity levels, and sleep patterns to predict potential health issues
-- **Breed-Specific Intelligence**: Tailored AI models that understand unique health risks and care requirements for different dog and cat breeds
-- **Preventive Care Alerts**: Proactive notifications based on AI-detected anomalies in your pet's routine health indicators
-
 ### Technical Implementation
 
 **Machine Learning Stack**
