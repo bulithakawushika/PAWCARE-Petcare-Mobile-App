@@ -37,11 +37,9 @@ jobs:
           mkdir -p android/app
           echo "$GOOGLE_SERVICES_JSON" | base64 --decode > android/app/google-services.json
       
-      # Regular unit tests (what you already have)
       - name: Run Flutter unit tests
         run: flutter test --coverage
       
-      # Android emulator testing (only if integration tests exist)
       - name: Check if integration tests exist
         id: check_integration_tests
         run: |
@@ -73,7 +71,7 @@ jobs:
           script: flutter test integration_test
       
       - name: Build APK
-        run: flutter build apk --release --no-shrink
+        run: flutter build apk --release
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
