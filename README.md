@@ -9,6 +9,8 @@
 
 The app uses Firebase for user authentication and data storage. It also utilizes a TensorFlow Lite model for predicting pet health issues.
 
+![PAWCARE Banner](https://github.com/bulithakawushika/PAWCARE-Petcare-Mobile-App/blob/main/Banner%20Image.webp)
+
 # AI-Powered Pet Care Features
 
 ## Intelligent Pet Health Monitoring
