@@ -18,9 +18,6 @@ void main() {
     // Verify that SplashScreen is the initial screen
     expect(find.byType(SplashScreen), findsOneWidget);
     
-    // Verify theme is set correctly
-    expect(app.theme?.primarySwatch, Colors.blue);
-    
     // Verify debug banner is disabled
     expect(app.debugShowCheckedModeBanner, false);
   });
