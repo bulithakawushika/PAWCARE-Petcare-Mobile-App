@@ -82,6 +82,9 @@ The pipeline includes conditional Android emulator execution:
 - **Performance Monitoring**: Build time and resource usage analytics
 - **Dependency Vulnerabilities Assessment**: Weekly vulnerability assessments and update recommendations
 
+# 🔒 License
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 # 🔧 Modifying the Codebase
 
 In cases where modifications to the codebase are intended (e.g., to address issues or implement enhancements), a new Firebase project should be created under your own account, and the corresponding google-services.json file should be placed within the android/app directory.
