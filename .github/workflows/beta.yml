@@ -1,4 +1,5 @@
 name: Flutter CI/CD with Android Testing
+
 on:
   push:
     branches: [beta]
@@ -7,14 +8,17 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
+      # Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v3
-      
+
+      # Set up Flutter
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
-      
+
+      # Cache Flutter Pub dependencies
       - name: Cache Flutter Pub dependencies
         uses: actions/cache@v4
         with:
@@ -24,20 +28,35 @@ jobs:
           key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
           restore-keys: |
             ${{ runner.os }}-flutter-
-      
+
+      # Install dependencies
       - name: Install dependencies
         run: flutter pub get
-      
+
+      # Decode google-services.json from secret
       - name: Decode google-services.json from secret
         env:
           GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
         run: |
           mkdir -p android/app
           echo "$GOOGLE_SERVICES_JSON" | base64 --decode > android/app/google-services.json
-      
+
+      # Run Flutter unit tests
       - name: Run Flutter unit tests
         run: flutter test --coverage
-      
+
+      # Generate HTML coverage report
+      - name: Generate HTML coverage report
+        run: genhtml coverage/lcov.info -o coverage/html
+
+      # Upload coverage report
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: coverage/html
+
+      # Check if integration tests exist
       - name: Check if integration tests exist
         id: check_integration_tests
         run: |
@@ -47,18 +66,21 @@ jobs:
             echo "has_integration_tests=false" >> $GITHUB_OUTPUT
             echo "No integration tests found, skipping emulator setup"
           fi
-      
+
+      # Enable KVM group perms (for emulator)
       - name: Enable KVM group perms
         if: steps.check_integration_tests.outputs.has_integration_tests == 'true'
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      
+
+      # Set up Android SDK
       - name: Set up Android SDK
         if: steps.check_integration_tests.outputs.has_integration_tests == 'true'
         uses: android-actions/setup-android@v3
-      
+
+      # Run integration tests on emulator
       - name: Run integration tests on emulator
         if: steps.check_integration_tests.outputs.has_integration_tests == 'true'
         uses: reactivecircus/android-emulator-runner@v2
@@ -67,10 +89,12 @@ jobs:
           arch: x86_64
           profile: Nexus 6
           script: flutter test integration_test
-      
+
+      # Build APK
       - name: Build APK
         run: flutter build apk --release
-      
+
+      # Upload APK artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
