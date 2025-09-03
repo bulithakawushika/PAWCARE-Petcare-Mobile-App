@@ -1,0 +1,61 @@
+version: 2
+updates:
+  # Flutter/Dart dependencies in pubspec.yaml
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "bulithakawushika"  # Replace with your GitHub username
+    assignees:
+      - "bulithakawushika"  # Replace with your GitHub username
+    commit-message:
+      prefix: "flutter"
+      prefix-development: "flutter-dev"
+    labels:
+      - "dependencies"
+      - "flutter"
+      - "security"
+
+  # GitHub Actions workflow dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/.github/workflows"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "bulithakawushika"  # Replace with your GitHub username
+    assignees:
+      - "bulithakawushika"  # Replace with your GitHub username
+    commit-message:
+      prefix: "ci"
+      prefix-development: "ci-dev"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+
+  # Android Gradle dependencies
+  - package-ecosystem: "gradle"
+    directory: "/android"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "bulithakawushika"  # Replace with your GitHub username
+    assignees:
+      - "bulithakawushika"  # Replace with your GitHub username
+    commit-message:
+      prefix: "android"
+      prefix-development: "android-dev"
+    labels:
+      - "dependencies"
+      - "android"
+      - "gradle"
