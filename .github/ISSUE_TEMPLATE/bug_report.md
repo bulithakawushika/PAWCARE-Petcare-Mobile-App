@@ -6,6 +6,7 @@ labels: bug
 assignees: ''
 
 ---
+# Bug Report
 
 ### Description
 <!-- Describe the bug or feature request -->
