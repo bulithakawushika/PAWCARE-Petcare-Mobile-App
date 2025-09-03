@@ -50,6 +50,7 @@ jobs:
         run: genhtml coverage/lcov.info -o coverage/html
       # Upload coverage report
       - name: Upload HTML coverage report
+        if: steps.check_coverage.outputs.skip_coverage == 'false'
         uses: actions/upload-artifact@v4
         with:
           name: coverage-html
