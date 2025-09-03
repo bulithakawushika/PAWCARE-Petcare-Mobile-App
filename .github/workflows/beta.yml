@@ -1,9 +1,7 @@
 name: Flutter CI/CD with Android Testing
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: [beta]
 
 jobs:
   build-and-test:
